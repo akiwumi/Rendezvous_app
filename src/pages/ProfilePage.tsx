@@ -1,15 +1,43 @@
 import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { adminUser, dummyPosts } from '../data/dummyData';
+import { adminUser, dummyPosts, dummyUsers } from '../data/dummyData';
 import AppHeader from '../components/AppHeader';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
+  const { userId } = useParams<{ userId?: string }>();
   const { currentUser, events } = useApp();
-  const [activeTab, setActiveTab] = useState<'about' | 'posts' | 'events' | 'reminders'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'posts' | 'events' | 'reminders'>('about');
+
+  const handleProfileClick = (authorId: string) => {
+    if (authorId === 'admin-1') {
+      navigate('/admin-profile');
+    }
+  };
+
+  const handleFriendClick = (friendId: string) => {
+    if (friendId === 'admin-1') {
+      navigate('/admin-profile');
+    } else {
+      navigate(`/profile/${friendId}`);
+    }
+  };
+
+  // Get user profile based on URL params or current user
+  const allUsers = [adminUser, ...dummyUsers];
+  const profileUser = userId 
+    ? allUsers.find(u => u.id === userId) || adminUser
+    : (currentUser || adminUser);
   
-  const profile = currentUser || adminUser;
+  const profile = profileUser;
   const isAdmin = profile.isAdmin || profile.id === adminUser.id;
+
+  // Get friend user objects
+  const friends = profile.friends
+    .map(friendId => allUsers.find(u => u.id === friendId))
+    .filter((friend): friend is typeof adminUser => friend !== undefined);
 
   // Dummy liked posts
   const likedPosts = dummyPosts.slice(0, 2);
@@ -62,7 +90,7 @@ const ProfilePage = () => {
   };
 
   // Dummy hero image for profile - Mallorca landscape
-  const profileHeroImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800';
+  const profileHeroImage = 'https://www.cunard.com/content/dam/cunard/marketing-assets/cunard-stories/mediterranean/Mediterranean_Beach_1480x832.jpg.image.1480.832.low.jpg';
 
   return (
     <div className="profile-page">
@@ -123,6 +151,12 @@ const ProfilePage = () => {
             onClick={() => setActiveTab('about')}
           >
             About
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
+            onClick={() => setActiveTab('friends')}
+          >
+            Friends ({friends.length})
           </button>
           <button
             className={`tab-button ${activeTab === 'posts' ? 'active' : ''}`}
@@ -189,14 +223,52 @@ const ProfilePage = () => {
                 </div>
               )}
 
-              {isAdmin && (
+              {(profile.bio || isAdmin) && (
                 <div className="detail-section">
                   <h2 className="section-title">About</h2>
                   <p className="profile-bio">
-                    Welcome to Rendezvous Social Club! As the administrator, I'm here to ensure
+                    {profile.bio || (isAdmin && `Welcome to Rendezvous Social Club! As the administrator, I'm here to ensure
                     all members have an exceptional experience. Feel free to reach out with any
-                    questions, suggestions, or concerns. Let's make this community thrive together!
+                    questions, suggestions, or concerns. Let's make this community thrive together!`)}
                   </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'friends' && (
+            <div className="friends-section">
+              <h2 className="section-title">Friends ({friends.length})</h2>
+              {friends.length === 0 ? (
+                <div className="empty-state">
+                  <span className="empty-icon">👥</span>
+                  <p>No friends yet</p>
+                </div>
+              ) : (
+                <div className="friends-grid">
+                  {friends.map((friend) => (
+                    <div 
+                      key={friend.id} 
+                      className="friend-card"
+                      onClick={() => handleFriendClick(friend.id)}
+                    >
+                      {friend.profileImage ? (
+                        <img
+                          src={friend.profileImage}
+                          alt={friend.fullName}
+                          className="friend-avatar"
+                        />
+                      ) : (
+                        <div className="friend-avatar-placeholder">
+                          {friend.fullName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="friend-name">{friend.fullName}</div>
+                      {friend.isAdmin && (
+                        <span className="friend-admin-badge">Admin</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -222,9 +294,19 @@ const ProfilePage = () => {
                       <div className="post-mini-content">
                         <div className="post-mini-author">
                           {post.authorImage ? (
-                            <img src={post.authorImage} alt={post.authorName} className="mini-avatar" />
+                            <img 
+                              src={post.authorImage} 
+                              alt={post.authorName} 
+                              className={`mini-avatar ${post.authorId === 'admin-1' ? 'clickable' : ''}`}
+                              onClick={() => handleProfileClick(post.authorId)}
+                              style={post.authorId === 'admin-1' ? { cursor: 'pointer' } : {}}
+                            />
                           ) : (
-                            <div className="mini-avatar-placeholder">
+                            <div 
+                              className={`mini-avatar-placeholder ${post.authorId === 'admin-1' ? 'clickable' : ''}`}
+                              onClick={() => post.authorId === 'admin-1' && handleProfileClick(post.authorId)}
+                              style={post.authorId === 'admin-1' ? { cursor: 'pointer' } : {}}
+                            >
                               {post.authorName.charAt(0).toUpperCase()}
                             </div>
                           )}

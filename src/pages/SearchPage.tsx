@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { adminUser } from '../data/dummyData';
+import { adminUser, dummyUsers } from '../data/dummyData';
 import AppHeader from '../components/AppHeader';
 import './SearchPage.css';
 
@@ -11,6 +11,7 @@ const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [members] = useState([
     adminUser,
+    ...dummyUsers,
     // In a real app, this would come from a database
   ]);
 
@@ -36,7 +37,6 @@ const SearchPage = () => {
     if (member.isAdmin) {
       navigate('/admin-profile');
     } else {
-      // For regular members, navigate to their profile
       navigate(`/profile/${member.id}`);
     }
   };

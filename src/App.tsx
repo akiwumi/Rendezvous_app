@@ -29,6 +29,7 @@ function App() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
           <Route path="/admin-profile" element={<AdminProfilePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

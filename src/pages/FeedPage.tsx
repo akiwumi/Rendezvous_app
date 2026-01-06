@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Post } from '../types';
 import { dummyPosts } from '../data/dummyData';
@@ -6,11 +7,20 @@ import AppHeader from '../components/AppHeader';
 import './FeedPage.css';
 
 const FeedPage = () => {
+  const navigate = useNavigate();
   const { currentUser, posts, addPost } = useApp();
   const [allPosts, setAllPosts] = useState<Post[]>([...dummyPosts, ...posts]);
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostImage, setNewPostImage] = useState<string | null>(null);
   const [showPostForm, setShowPostForm] = useState(false);
+
+  const handleProfileClick = (authorId: string) => {
+    if (authorId === 'admin-1') {
+      navigate('/admin-profile');
+    } else {
+      navigate(`/profile/${authorId}`);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -139,10 +149,16 @@ const FeedPage = () => {
                     <img
                       src={post.authorImage}
                       alt={post.authorName}
-                      className="author-avatar"
+                      className="author-avatar clickable"
+                      onClick={() => handleProfileClick(post.authorId)}
+                      style={{ cursor: 'pointer' }}
                     />
                   ) : (
-                    <div className="author-avatar-placeholder">
+                    <div 
+                      className="author-avatar-placeholder clickable"
+                      onClick={() => handleProfileClick(post.authorId)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       {post.authorName.charAt(0).toUpperCase()}
                     </div>
                   )}

@@ -141,6 +141,12 @@
   object-fit: cover;
 }
 
+.author-avatar.clickable:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
 .author-avatar-placeholder {
   background-color: var(--interactive-blue);
   color: var(--text-inverse);
@@ -148,6 +154,12 @@
   align-items: center;
   justify-content: center;
   font-weight: var(--font-weight-semibold);
+}
+
+.author-avatar-placeholder.clickable:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
 }
 
 .author-name {

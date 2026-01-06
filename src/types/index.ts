@@ -4,6 +4,7 @@ export interface User {
   email: string;
   phone: string;
   address?: string;
+  bio?: string;
   socialLinks?: {
     instagram?: string;
     facebook?: string;

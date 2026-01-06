@@ -30,7 +30,7 @@ const AdminProfilePage = () => {
     }).format(new Date(date));
   };
 
-  // Hero image - beautiful Mallorca beach
+  // Hero image - beautiful beach
   const heroImage = '/mallorca-beach.jpg';
 
   // Gallery images
