@@ -30,8 +30,8 @@ const AdminProfilePage = () => {
     }).format(new Date(date));
   };
 
-  // Hero image - beautiful Mallorca sunset/landscape
-  const heroImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200';
+  // Hero image - beautiful Mallorca beach
+  const heroImage = '/mallorca-beach.jpg';
 
   // Gallery images
   const galleryImages = [
@@ -51,7 +51,7 @@ const AdminProfilePage = () => {
       <div className="admin-hero">
         <img 
           src={heroImage}
-          alt="Mallorca landscape"
+          alt="Mallorca beach"
           className="admin-hero-image"
         />
         <div className="admin-hero-overlay"></div>
