@@ -1,24 +1,11 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SplashScreen.css';
 
 const SplashScreen = () => {
-  const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFadeOut(true);
-      setTimeout(() => {
-        navigate('/announcements');
-      }, 500);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [navigate]);
-
   return (
-    <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
+    <div className="splash-screen">
       <div className="splash-content">
         <img 
           src="/splash-screen.png" 
@@ -32,6 +19,21 @@ const SplashScreen = () => {
         <div className="splash-overlay">
           <h1 className="splash-title">Rendezvous</h1>
           <p className="splash-subtitle">Social Club</p>
+          
+          <div className="splash-actions">
+            <button 
+              className="splash-button login-button"
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </button>
+            <button 
+              className="splash-button register-button"
+              onClick={() => navigate('/register')}
+            >
+              Register
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -39,4 +41,3 @@ const SplashScreen = () => {
 };
 
 export default SplashScreen;
-

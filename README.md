@@ -4,7 +4,8 @@ An exclusive private social club mobile application built with React, TypeScript
 
 ## Features
 
-- **Splash Screen** - Elegant welcome screen with branding
+- **Splash Screen** - Elegant welcome screen with branding and login/register buttons
+- **Login Page** - User authentication with dummy credentials (demo@rendezvous.club / demo123)
 - **Announcements** - Main page with admin announcements (parties, events, exhibitions, tournaments, trips)
 - **Registration** - Member registration with invitation code validation
 - **User Feed** - Facebook-like social feed for members to post and interact
@@ -59,17 +60,26 @@ src/
 
 ## Key Pages
 
-1. **Splash Screen** (`/`) - Initial welcome screen
-2. **Announcements** (`/announcements`) - Main announcements feed
-3. **Registration** (`/register`) - Member registration
-4. **Feed** (`/feed`) - User social feed
-5. **Events** (`/events`) - Upcoming events with RSVP
-6. **Search** (`/search`) - Find and connect with members
-7. **Chat** (`/chat`) - Messaging interface
-8. **Profile** (`/profile`) - User profile page
+1. **Splash Screen** (`/`) - Initial welcome screen with Login and Register buttons
+2. **Login** (`/login`) - User authentication page
+3. **Announcements** (`/announcements`) - Main announcements feed
+4. **Registration** (`/register`) - Member registration
+5. **Feed** (`/feed`) - User social feed
+6. **Events** (`/events`) - Upcoming events with RSVP
+7. **Search** (`/search`) - Find and connect with members
+8. **Chat** (`/chat`) - Messaging interface
+9. **Profile** (`/profile`) - User profile page
 
-## Registration
+## Authentication
 
+### Login
+The landing page now includes **Login** and **Register** buttons. Users must choose an option to proceed.
+
+**Demo Login Credentials:**
+- Email: `demo@rendezvous.club`
+- Password: `demo123`
+
+### Registration
 To register, use the invitation code: `RENDEZVOUS2025`
 
 Required fields:

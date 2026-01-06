@@ -10,6 +10,7 @@ interface AppContextType {
   events: Event[];
   setEvents: (events: Event[]) => void;
   registerUser: (userData: Partial<User>, invitationCode: string) => Promise<boolean>;
+  loginUser: (email: string, password: string) => boolean;
   addPost: (post: Post) => void;
   registerForEvent: (eventId: string, userId: string) => void;
 }
@@ -46,6 +47,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
+  const loginUser = (email: string, password: string): boolean => {
+    // Dummy login - in a real app, this would verify against a database
+    if (email === 'demo@rendezvous.club' && password === 'demo123') {
+      // Create a demo user
+      const demoUser: User = {
+        id: 'demo-user-1',
+        fullName: 'Demo User',
+        email: 'demo@rendezvous.club',
+        phone: '+34 123 456 789',
+        address: 'Mallorca, Spain',
+        friends: [adminUser.id],
+        profileImage: undefined,
+      };
+      setCurrentUser(demoUser);
+      return true;
+    }
+    return false;
+  };
+
   const addPost = (post: Post) => {
     setPosts([post, ...posts]);
   };
@@ -69,6 +89,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         events,
         setEvents,
         registerUser,
+        loginUser,
         addPost,
         registerForEvent,
       }}

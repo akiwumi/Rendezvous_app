@@ -17,7 +17,7 @@ const SearchPage = () => {
     member.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddFriend = (userId: string) => {
+  const handleAddFriend = (_userId: string) => {
     if (!currentUser) {
       alert('Please register to add friends');
       return;

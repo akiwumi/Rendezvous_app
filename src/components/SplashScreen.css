@@ -63,5 +63,50 @@
   color: var(--text-inverse);
   letter-spacing: 4px;
   text-transform: uppercase;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.splash-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 300px;
+  margin-top: var(--spacing-xl);
+}
+
+.splash-button {
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  min-height: 50px;
+}
+
+.login-button {
+  background-color: var(--color-gold);
+  color: var(--text-primary);
+  border-color: var(--color-gold);
+}
+
+.login-button:hover {
+  background-color: var(--color-gold-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.register-button {
+  background-color: transparent;
+  color: var(--text-inverse);
+  border-color: var(--text-inverse);
+}
+
+.register-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
