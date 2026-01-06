@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { adminUser } from '../data/dummyData';
 import AppHeader from '../components/AppHeader';
@@ -6,6 +7,7 @@ import './SearchPage.css';
 
 const SearchPage = () => {
   const { currentUser } = useApp();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [members] = useState([
     adminUser,
@@ -30,6 +32,15 @@ const SearchPage = () => {
     return currentUser?.friends.includes(userId) || false;
   };
 
+  const handleViewProfile = (member: typeof adminUser) => {
+    if (member.isAdmin) {
+      navigate('/admin-profile');
+    } else {
+      // For regular members, navigate to their profile
+      navigate(`/profile/${member.id}`);
+    }
+  };
+
   return (
     <div className="search-page">
       <AppHeader />
@@ -49,7 +60,10 @@ const SearchPage = () => {
         <div className="members-list">
           {filteredMembers.map((member) => (
             <div key={member.id} className="member-card">
-              <div className="member-info">
+              <div 
+                className="member-info clickable"
+                onClick={() => handleViewProfile(member)}
+              >
                 {member.profileImage ? (
                   <img
                     src={member.profileImage}
@@ -72,15 +86,23 @@ const SearchPage = () => {
                   )}
                 </div>
               </div>
-              {currentUser && currentUser.id !== member.id && (
+              <div className="member-actions">
                 <button
-                  className={`friend-button ${isFriend(member.id) ? 'friends' : ''}`}
-                  onClick={() => handleAddFriend(member.id)}
-                  disabled={isFriend(member.id)}
+                  className="view-profile-btn"
+                  onClick={() => handleViewProfile(member)}
                 >
-                  {isFriend(member.id) ? '✓ Friends' : '+ Add Friend'}
+                  View Profile
                 </button>
-              )}
+                {currentUser && currentUser.id !== member.id && (
+                  <button
+                    className={`friend-button ${isFriend(member.id) ? 'friends' : ''}`}
+                    onClick={() => handleAddFriend(member.id)}
+                    disabled={isFriend(member.id)}
+                  >
+                    {isFriend(member.id) ? '✓ Friends' : '+ Add'}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

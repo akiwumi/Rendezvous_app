@@ -35,6 +35,21 @@ const AnnouncementsPage = () => {
   return (
     <div className="announcements-page">
       <AppHeader />
+      
+      {/* Hero Section */}
+      <div className="hero-section">
+        <img 
+          src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800"
+          alt="Rendezvous Social Club"
+          className="hero-image"
+        />
+        <div className="hero-overlay">
+          <h1 className="hero-title">Rendezvous</h1>
+          <p className="hero-subtitle">Social Club Mallorca</p>
+          <p className="hero-tagline">Where Exclusive Moments Come Together</p>
+        </div>
+      </div>
+
       <div className="announcements-content">
         <div className="announcements-header">
           <h1 className="page-title">Announcements</h1>
@@ -51,7 +66,7 @@ const AnnouncementsPage = () => {
           {announcements.map((announcement) => (
             <div key={announcement.id} className="announcement-card">
               {announcement.image && (
-                <div className="announcement-image-container">
+                <div className="announcement-image-container has-admin-watermark">
                   <img 
                     src={announcement.image} 
                     alt={announcement.title}

@@ -154,7 +154,7 @@ const FeedPage = () => {
               </div>
               <p className="post-content">{post.content}</p>
               {post.image && (
-                <div className="post-image-container">
+                <div className={`post-image-container ${post.authorId === 'admin-1' ? 'has-admin-watermark' : ''}`}>
                   <img src={post.image} alt="Post" className="post-image" />
                 </div>
               )}

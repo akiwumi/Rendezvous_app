@@ -53,7 +53,7 @@ const EventsPage = () => {
           {allEvents.map((event) => (
             <div key={event.id} className="event-card">
               {event.image && (
-                <div className="event-image-container">
+                <div className={`event-image-container ${event.createdBy === 'admin-1' ? 'has-admin-watermark' : ''}`}>
                   <img src={event.image} alt={event.title} className="event-image" />
                 </div>
               )}

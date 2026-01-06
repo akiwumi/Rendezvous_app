@@ -13,6 +13,17 @@ export interface User {
   profileImage?: string;
   friends: string[]; // User IDs
   isAdmin?: boolean;
+  likedPosts?: string[]; // Post IDs
+  registeredEvents?: string[]; // Event IDs
+  eventReminders?: EventReminder[];
+}
+
+export interface EventReminder {
+  eventId: string;
+  eventTitle: string;
+  eventDate: Date;
+  reminderTime: Date;
+  notified: boolean;
 }
 
 export interface Post {
@@ -77,3 +88,15 @@ export interface Chat {
   groupName?: string;
 }
 
+export interface Notification {
+  id: string;
+  type: 'post' | 'event' | 'announcement' | 'friend' | 'comment' | 'like' | 'message';
+  title: string;
+  message: string;
+  relatedUserId?: string;
+  relatedUserName?: string;
+  relatedUserImage?: string;
+  relatedItemId?: string; // Post ID, Event ID, etc.
+  timestamp: Date;
+  read: boolean;
+}

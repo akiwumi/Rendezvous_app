@@ -9,7 +9,9 @@ import FeedPage from './pages/FeedPage';
 import EventsPage from './pages/EventsPage';
 import SearchPage from './pages/SearchPage';
 import ChatPage from './pages/ChatPage';
+import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminProfilePage from './pages/AdminProfilePage';
 import './App.css';
 
 function App() {
@@ -25,7 +27,9 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin-profile" element={<AdminProfilePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <BottomNav />

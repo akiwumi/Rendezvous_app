@@ -1,18 +1,60 @@
 import { Announcement, Event, User, Post } from '../types';
 
-// Admin User
+// Admin User - Pernilla Ewarldsson
 export const adminUser: User = {
   id: 'admin-1',
   fullName: 'Pernilla Ewarldsson',
   email: 'pernilla@rendezvous.club',
   phone: '+34 971 123 456',
-  address: 'Mallorca, Spain',
+  address: 'Palma de Mallorca, Spain',
   profileImage: '/pernilla.png',
-  friends: [],
+  friends: ['user-1', 'user-2', 'user-3', 'user-4', 'user-5', 'user-6', 'user-7', 'user-8'],
   isAdmin: true,
   socialLinks: {
     instagram: '@pernilla_rendezvous',
+    facebook: 'pernilla.ewarldsson',
+    twitter: '@PernillaRSC',
     linkedin: 'pernilla-ewarldsson',
+  },
+  likedPosts: ['post-1', 'post-2'],
+  registeredEvents: ['evt-1', 'evt-2', 'evt-3', 'evt-4', 'evt-5', 'evt-6', 'evt-7', 'evt-8'],
+};
+
+// Admin Bio and Extended Info
+export const adminProfile = {
+  bio: `Founder and Director of Rendezvous Social Club, Pernilla Ewarldsson has been the heart and soul of Mallorca's most exclusive private social club since 2018. With over 15 years of experience in luxury hospitality and event management, Pernilla brings a unique blend of Scandinavian elegance and Mediterranean warmth to every gathering.
+
+Born in Stockholm, Sweden, Pernilla fell in love with Mallorca during a summer holiday in 2005 and never looked back. Her vision for Rendezvous was simple: create a space where like-minded individuals could connect, celebrate, and create lasting memories in one of the world's most beautiful destinations.`,
+  
+  role: 'Founder & Director',
+  memberSince: new Date('2018-03-15'),
+  
+  achievements: [
+    'Founded Rendezvous Social Club in 2018',
+    'Organized over 500+ exclusive events',
+    'Built a community of 200+ distinguished members',
+    'Featured in Mallorca Magazine\'s "Top 10 Influencers"',
+    'Recipient of the Palma Hospitality Excellence Award 2023',
+  ],
+  
+  interests: [
+    'Wine & Gastronomy',
+    'Yacht Sailing',
+    'Contemporary Art',
+    'Golf',
+    'Travel & Cultural Exchange',
+    'Interior Design',
+  ],
+  
+  languages: ['Swedish', 'English', 'Spanish', 'German'],
+  
+  quote: '"Life is too short for ordinary experiences. At Rendezvous, we create extraordinary moments that become cherished memories."',
+  
+  stats: {
+    eventsHosted: 156,
+    membersConnected: 248,
+    yearsActive: 7,
+    countriesRepresented: 28,
   },
 };
 
@@ -49,7 +91,7 @@ export const dummyAnnouncements: Announcement[] = [
     id: 'ann-4',
     title: 'Paddle Tennis Tournament',
     content: 'Annual member paddle tennis tournament. Singles and doubles categories. Trophy presentation and celebratory dinner following the finals. Register by June 20th.',
-    image: 'https://images.unsplash.com/photo-1622163642999-6b429b91cb22?w=800',
+    image: '/paddle.jpg',
     link: 'https://rendezvous.club/events/paddle-tournament',
     date: new Date('2025-07-10T09:00:00'),
     type: 'tournament',
@@ -58,7 +100,7 @@ export const dummyAnnouncements: Announcement[] = [
     id: 'ann-5',
     title: 'Safari Adventure to Kenya',
     content: 'Exclusive 7-day safari trip to the Maasai Mara. Experience the great migration, luxury tented camps, and world-class game viewing. Limited to 12 members. Early booking recommended.',
-    image: 'https://images.unsplash.com/photo-1516426122078-c23e7649ee96?w=800',
+    image: '/safari.jpg',
     link: 'https://rendezvous.club/events/kenya-safari',
     date: new Date('2025-08-20T00:00:00'),
     type: 'trip',

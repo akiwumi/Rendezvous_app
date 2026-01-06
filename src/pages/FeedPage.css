@@ -172,12 +172,31 @@
   margin-bottom: var(--spacing-md);
   border-radius: var(--radius-md);
   overflow: hidden;
+  position: relative;
 }
 
 .post-image {
   width: 100%;
   max-height: 400px;
   object-fit: cover;
+}
+
+/* Admin Watermark for Posts */
+.post-image-container.has-admin-watermark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 75%;
+  height: 75%;
+  background-image: url('/penilla-logo-3.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .post-actions {

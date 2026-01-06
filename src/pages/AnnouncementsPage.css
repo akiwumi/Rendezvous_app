@@ -4,6 +4,64 @@
   padding-bottom: calc(var(--nav-height) + var(--spacing-md));
 }
 
+/* Hero Section */
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(85, 107, 47, 0.6),
+    rgba(61, 79, 33, 0.85)
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-md);
+}
+
+.hero-title {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gold);
+  margin-bottom: var(--spacing-xs);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-inverse);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.hero-tagline {
+  font-size: var(--font-size-sm);
+  color: var(--color-gold-light);
+  font-style: italic;
+  letter-spacing: 1px;
+}
+
 .announcements-content {
   padding: var(--spacing-md) var(--screen-padding-h);
 }
@@ -56,12 +114,31 @@
   height: 200px;
   overflow: hidden;
   background-color: var(--bg-tertiary);
+  position: relative;
 }
 
 .announcement-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Admin Watermark for Announcements */
+.announcement-image-container.has-admin-watermark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 75%;
+  height: 75%;
+  background-image: url('/penilla-logo-3.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .announcement-content {

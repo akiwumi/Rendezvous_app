@@ -12,7 +12,10 @@ An exclusive private social club mobile application built with React, TypeScript
 - **Events** - Event listings with calendar integration and RSVP functionality
 - **Search & Connect** - Find and connect with other members
 - **Chat** - Real-time messaging with members and administrators
-- **Profile** - User profiles including admin profile (Pernilla Ewarldsson)
+- **Profile** - User profiles with tabs for About, Liked Posts, Events, and Reminders
+- **Admin Profile** - Complete profile page for Pernilla Ewarldsson with bio, achievements, hosted events, posts, and gallery
+- **Notifications** - Notification system for posts, events, announcements, and updates
+- **Watermarks** - Automatic logo watermark on all admin-created content (posts, announcements, events)
 
 ## Design System
 
@@ -69,6 +72,8 @@ src/
 7. **Search** (`/search`) - Find and connect with members
 8. **Chat** (`/chat`) - Messaging interface
 9. **Profile** (`/profile`) - User profile page
+10. **Admin Profile** (`/admin-profile`) - Complete admin profile for Pernilla Ewarldsson
+11. **Notifications** (`/notifications`) - Notifications for posts, events, and updates
 
 ## Authentication
 
@@ -95,14 +100,34 @@ Optional fields:
 
 ## Admin Profile
 
+A complete admin profile page has been created for Pernilla Ewarldsson (`/admin-profile`). The profile includes:
+- **Hero Section** with Mallorca landscape background
+- **Profile Stats**: Events hosted, members connected, years active, countries represented
+- **Social Links**: Instagram, Facebook, Twitter, LinkedIn
+- **Tabs**: About (bio, achievements, interests, languages), Events, Posts, Gallery
+- **Achievements**: List of notable accomplishments
+- **Events Section**: All hosted events with images and details
+- **Posts Section**: All admin posts
+- **Gallery**: Photo gallery of past events
+
 The admin profile for Pernilla Ewarldsson is automatically available. All new members are automatically added as friends with the admin.
 
 ## Public Assets
 
 Place the following images in the `public/` directory:
 - `splash-screen.jpg` - Splash screen image (swapped from splash-screen.png)
-- `penilla-logo-3.png` - Header logo
+- `penilla-logo-3.png` - Header logo (also used as watermark on admin content)
 - `pernilla.png` - Admin profile picture
+- `paddle.jpg` - Paddle Tennis Tournament announcement image
+- `safari.jpg` - Safari Adventure to Kenya announcement image
+
+## Watermark Feature
+
+All admin-created content (posts, announcements, and events) automatically displays the `penilla-logo-3.png` watermark on the right side of images. The watermark:
+- Appears on 75% of the image area
+- Positioned on the right edge, vertically centered
+- Applied to all posts by the admin, all announcements, and all admin-created events
+- Uses 70% opacity for subtle branding
 
 ## Mobile-First Design
 
