@@ -4,7 +4,7 @@ An exclusive private social club mobile application built with React, TypeScript
 
 ## Features
 
-- **Splash Screen** - Elegant welcome screen with branding and login/register buttons
+- **Splash Screen** - Elegant welcome screen with branding and compact side-by-side login/register buttons positioned lower on the page
 - **Login Page** - User authentication with dummy credentials (demo@rendezvous.club / demo123)
 - **Announcements** - Main page with admin announcements (parties, events, exhibitions, tournaments, trips)
 - **Registration** - Member registration with invitation code validation

@@ -45,7 +45,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 20%;
+  padding-bottom: 10%;
 }
 
 .splash-title {
@@ -63,27 +65,31 @@
   color: var(--text-inverse);
   letter-spacing: 4px;
   text-transform: uppercase;
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: var(--spacing-3xl);
 }
 
 .splash-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--spacing-md);
   width: 100%;
-  max-width: 300px;
-  margin-top: var(--spacing-xl);
+  max-width: 400px;
+  margin-top: auto;
+  padding-bottom: var(--spacing-3xl);
+  justify-content: center;
 }
 
 .splash-button {
-  padding: var(--spacing-md) var(--spacing-xl);
+  padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
-  min-height: 50px;
+  min-height: 36px;
+  flex: 1;
+  max-width: 150px;
 }
 
 .login-button {
