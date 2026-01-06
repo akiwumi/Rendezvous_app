@@ -8,7 +8,7 @@ const SplashScreen = () => {
     <div className="splash-screen">
       <div className="splash-content">
         <img 
-          src="/splash-screen.png" 
+          src="/splash-screen.jpg" 
           alt="Rendezvous Social Club" 
           className="splash-image"
           onError={(e) => {

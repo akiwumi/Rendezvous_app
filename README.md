@@ -100,7 +100,7 @@ The admin profile for Pernilla Ewarldsson is automatically available. All new me
 ## Public Assets
 
 Place the following images in the `public/` directory:
-- `splash-screen.png` - Splash screen image
+- `splash-screen.jpg` - Splash screen image (swapped from splash-screen.png)
 - `penilla-logo-3.png` - Header logo
 - `pernilla.png` - Admin profile picture
 
