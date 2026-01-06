@@ -1,0 +1,147 @@
+{
+  "name": "Rendezvous Social Club Design System",
+  "version": "1.0.0",
+  "description": "Design system for Rendezvous social media mobile app",
+  "colors": {
+    "primary": {
+      "gold": "#D4AF37",
+      "goldLight": "#E5C158",
+      "goldDark": "#B8941F",
+      "olive": "#556B2F",
+      "oliveLight": "#6B8E3A",
+      "oliveDark": "#3D4F21"
+    },
+    "background": {
+      "primary": "#FFFFFF",
+      "secondary": "#F8F9FA",
+      "tertiary": "#E9ECEF",
+      "dark": "#556B2F",
+      "overlay": "rgba(0, 0, 0, 0.5)"
+    },
+    "text": {
+      "primary": "#1A1A1A",
+      "secondary": "#6C757D",
+      "tertiary": "#ADB5BD",
+      "inverse": "#FFFFFF",
+      "accent": "#D4AF37"
+    },
+    "status": {
+      "success": "#28A745",
+      "warning": "#FFC107",
+      "error": "#DC3545",
+      "info": "#17A2B8"
+    },
+    "interactive": {
+      "blue": "#007AFF",
+      "red": "#FF3B30",
+      "purple": "#AF52DE",
+      "orange": "#FF9500"
+    },
+    "border": {
+      "light": "#E9ECEF",
+      "medium": "#DEE2E6",
+      "dark": "#ADB5BD",
+      "accent": "#D4AF37"
+    }
+  },
+  "typography": {
+    "fontSize": {
+      "xs": 12,
+      "sm": 14,
+      "base": 16,
+      "lg": 18,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 30,
+      "4xl": 36,
+      "5xl": 48
+    },
+    "fontWeight": {
+      "light": 300,
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800
+    },
+    "lineHeight": {
+      "tight": 1.2,
+      "normal": 1.5,
+      "relaxed": 1.75
+    }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "xl": 32,
+    "2xl": 48,
+    "3xl": 64
+  },
+  "borderRadius": {
+    "none": 0,
+    "sm": 4,
+    "md": 8,
+    "lg": 12,
+    "xl": 16,
+    "2xl": 24,
+    "full": 9999
+  },
+  "layout": {
+    "screenPadding": {
+      "horizontal": 16,
+      "vertical": 16
+    },
+    "cardPadding": {
+      "horizontal": 16,
+      "vertical": 12
+    },
+    "sizes": {
+      "avatar": {
+        "sm": 32,
+        "md": 40,
+        "lg": 56,
+        "xl": 80
+      },
+      "icon": {
+        "sm": 16,
+        "md": 24,
+        "lg": 32,
+        "xl": 48
+      },
+      "button": {
+        "height": {
+          "sm": 36,
+          "md": 44,
+          "lg": 52
+        }
+      },
+      "dailyCard": {
+        "width": 120,
+        "height": 160
+      }
+    },
+    "navigation": {
+      "height": 56,
+      "iconSize": 24
+    },
+    "header": {
+      "height": 56
+    }
+  },
+  "animations": {
+    "duration": {
+      "fast": 150,
+      "normal": 300,
+      "slow": 500
+    }
+  },
+  "breakpoints": {
+    "sm": 375,
+    "md": 414,
+    "lg": 768,
+    "xl": 1024
+  }
+}
+

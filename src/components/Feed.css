@@ -1,0 +1,74 @@
+.feed {
+  padding: var(--spacing-md) 0;
+}
+
+.feed-post {
+  background-color: var(--bg-primary);
+  margin-bottom: 1px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.avatar {
+  width: var(--avatar-md);
+  height: var(--avatar-md);
+  border-radius: var(--radius-full);
+  background-color: var(--interactive-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-inverse);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.username {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.post-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  margin: 0 var(--spacing-md);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: linear-gradient(135deg, var(--color-gold), var(--color-olive));
+}
+
+.notification-badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background-color: var(--interactive-red);
+  color: var(--text-inverse);
+  border-radius: var(--radius-xl);
+  padding: 2px 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-text {
+  color: var(--text-inverse);
+  font-size: var(--font-size-xs);
+}
+

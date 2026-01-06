@@ -1,0 +1,26 @@
+.app-header {
+  height: var(--header-height);
+  background-color: var(--bg-olive);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--screen-padding-h);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-logo {
+  max-height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo-fallback {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gold);
+  letter-spacing: 1px;
+}
+

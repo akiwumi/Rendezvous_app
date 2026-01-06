@@ -1,0 +1,53 @@
+.color-palette {
+  padding: var(--spacing-xl) var(--screen-padding-h);
+  background-color: var(--bg-secondary);
+}
+
+.section-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.color-swatch {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.color-swatch-color {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm);
+  text-align: center;
+}
+
+.color-swatch-info {
+  padding: var(--spacing-sm);
+  background-color: var(--bg-primary);
+}
+
+.color-swatch-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 2px;
+  color: var(--text-primary);
+}
+
+.color-swatch-hex {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
