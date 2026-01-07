@@ -164,8 +164,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
 
-      // Create auth user
-      const password = `TempPass${Date.now()}`; // Generate temporary password
+      // Create auth user with user-provided password
+      const password = userData.password || `TempPass${Date.now()}`;
       let authData;
       try {
         authData = await authService.signUp(
@@ -206,6 +206,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         try {
           const createdUser = await userService.createUser(newUser);
           setCurrentUser(createdUser);
+          
+          // Create welcome notification
+          await addNotification({
+            type: 'announcement',
+            title: 'Welcome to Rendezvous!',
+            message: `Welcome ${userData.fullName}! You're now a member of Rendezvous Social Club.`,
+            relatedItemId: createdUser.id,
+          });
         } catch (error) {
           console.error('Error creating user profile:', error);
           // Still set user locally even if DB save fails

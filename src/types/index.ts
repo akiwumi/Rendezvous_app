@@ -5,6 +5,7 @@ export interface User {
   phone: string;
   address?: string;
   bio?: string;
+  password?: string; // Only used during registration
   socialLinks?: {
     instagram?: string;
     facebook?: string;
@@ -32,9 +33,15 @@ export interface Post {
   authorId: string;
   authorName: string;
   authorImage?: string;
+  headline?: string; // Post headline/title
   content: string;
   image?: string;
   link?: string;
+  postType?: 'event' | 'announcement' | 'regular'; // Type of post
+  eventDate?: Date; // Date and time for event/announcement
+  deadline?: Date; // Registration deadline
+  location?: string; // Location for events
+  interestedUsers?: string[]; // User IDs who registered interest
   createdAt: Date;
   likes: string[]; // User IDs who liked
   comments: Comment[];

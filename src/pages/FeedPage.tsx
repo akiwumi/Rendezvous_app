@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { postService } from '../services/supabaseService';
+import PostInteractions from '../components/PostInteractions';
 import AppHeader from '../components/AppHeader';
 import PullToRefresh from '../components/PullToRefresh';
 import './FeedPage.css';
@@ -190,21 +191,116 @@ const FeedPage = () => {
                   </div>
                 </div>
               </div>
+              {post.headline && (
+                <h3 className="post-headline">{post.headline}</h3>
+              )}
               <p className="post-content">{post.content}</p>
               {post.image && (
-                <div className={`post-image-container ${post.authorId === 'admin-1' ? 'has-admin-watermark' : ''}`}>
+                <div className={`post-image-container ${post.authorId === 'admin-1' || post.authorId === 'd8750992-cb10-485d-8d45-2746af3db391' ? 'has-admin-watermark' : ''}`}>
                   <img src={post.image} alt="Post" className="post-image" />
                 </div>
               )}
-              <div className="post-actions">
-                <button className="post-action-btn">
-                  👍 Like ({post.likes.length})
-                </button>
-                <button className="post-action-btn">
-                  💬 Comment ({post.comments.length})
-                </button>
-                <button className="post-action-btn">🔗 Share</button>
-              </div>
+              <PostInteractions
+                post={post}
+                currentUser={currentUser}
+                onLike={async (postId) => {
+                  if (!currentUser) return;
+                  try {
+                    const post = posts.find(p => p.id === postId);
+                    if (!post) return;
+                    
+                    const isLiked = post.likes.includes(currentUser.id);
+                    const updatedLikes = isLiked
+                      ? post.likes.filter(id => id !== currentUser.id)
+                      : [...post.likes, currentUser.id];
+                    
+                    await postService.updatePost(postId, { likes: updatedLikes });
+                    const updatedPosts = await postService.getPosts();
+                    setPosts(updatedPosts);
+                  } catch (error) {
+                    console.error('Error liking post:', error);
+                  }
+                }}
+                onComment={async (postId, commentText) => {
+                  if (!currentUser) return;
+                  try {
+                    const post = posts.find(p => p.id === postId);
+                    if (!post) return;
+                    
+                    const newComment = {
+                      id: `comment-${Date.now()}`,
+                      authorId: currentUser.id,
+                      authorName: currentUser.fullName,
+                      authorImage: currentUser.profileImage,
+                      content: commentText,
+                      createdAt: new Date(),
+                    };
+                    
+                    const updatedComments = [...(post.comments || []), newComment];
+                    await postService.updatePost(postId, { comments: updatedComments });
+                    const updatedPosts = await postService.getPosts();
+                    setPosts(updatedPosts);
+                  } catch (error) {
+                    console.error('Error adding comment:', error);
+                  }
+                }}
+                onRegisterInterest={async (postId) => {
+                  if (!currentUser) return;
+                  try {
+                    const post = posts.find(p => p.id === postId);
+                    if (!post) return;
+                    
+                    const interestedUsers = post.interestedUsers || [];
+                    const isInterested = interestedUsers.includes(currentUser.id);
+                    const updatedInterested = isInterested
+                      ? interestedUsers.filter(id => id !== currentUser.id)
+                      : [...interestedUsers, currentUser.id];
+                    
+                    await postService.updatePost(postId, { interestedUsers: updatedInterested });
+                    const updatedPosts = await postService.getPosts();
+                    setPosts(updatedPosts);
+                  } catch (error) {
+                    console.error('Error registering interest:', error);
+                  }
+                }}
+                onAddToCalendar={(post) => {
+                  if (!post.eventDate) return;
+                  
+                  // Create ICS file for calendar
+                  const startDate = new Date(post.eventDate);
+                  const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+                  
+                  const formatICSDate = (date: Date) => {
+                    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                  };
+                  
+                  const icsContent = [
+                    'BEGIN:VCALENDAR',
+                    'VERSION:2.0',
+                    'PRODID:-//Rendezvous Social Club//EN',
+                    'BEGIN:VEVENT',
+                    `DTSTART:${formatICSDate(startDate)}`,
+                    `DTEND:${formatICSDate(endDate)}`,
+                    `SUMMARY:${post.headline || post.content.substring(0, 50)}`,
+                    `DESCRIPTION:${post.content}`,
+                    post.location ? `LOCATION:${post.location}` : '',
+                    'END:VEVENT',
+                    'END:VCALENDAR',
+                  ].filter(Boolean).join('\r\n');
+                  
+                  const blob = new Blob([icsContent], { type: 'text/calendar' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `${post.headline || 'event'}.ics`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                  
+                  alert('Calendar event downloaded! Open the .ics file to add to your calendar.');
+                }}
+              />
             </div>
           ))}
         </div>

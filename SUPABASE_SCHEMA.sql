@@ -28,9 +28,15 @@ CREATE TABLE IF NOT EXISTS posts (
   author_id UUID REFERENCES users(id) ON DELETE CASCADE,
   author_name TEXT NOT NULL,
   author_image TEXT,
+  headline TEXT,
   content TEXT NOT NULL,
   image TEXT,
   link TEXT,
+  post_type TEXT DEFAULT 'regular', -- 'event', 'announcement', or 'regular'
+  event_date TIMESTAMP WITH TIME ZONE,
+  deadline TIMESTAMP WITH TIME ZONE,
+  location TEXT,
+  interested_users TEXT[] DEFAULT '{}',
   likes TEXT[] DEFAULT '{}',
   comments JSONB DEFAULT '[]',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -113,6 +119,8 @@ CREATE TABLE IF NOT EXISTS invitation_codes (
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_posts_author_id ON posts(author_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_post_type ON posts(post_type);
+CREATE INDEX IF NOT EXISTS idx_posts_event_date ON posts(event_date);
 CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
 CREATE INDEX IF NOT EXISTS idx_events_created_by ON events(created_by);
 CREATE INDEX IF NOT EXISTS idx_event_attendees_event_id ON event_attendees(event_id);
@@ -121,6 +129,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(user_id, read);
 CREATE INDEX IF NOT EXISTS idx_friendships_user_id ON friendships(user_id);
 CREATE INDEX IF NOT EXISTS idx_friendships_friend_id ON friendships(friend_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- Row Level Security (RLS) Policies
 -- Enable RLS on all tables
@@ -137,9 +146,11 @@ CREATE POLICY "Users can view all profiles" ON users FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid()::text = id::text);
 
 -- Posts: Users can read all posts, create their own, update/delete own posts
+-- Also allow authenticated users to interact with posts (likes, comments, interested_users)
 CREATE POLICY "Anyone can read posts" ON posts FOR SELECT USING (true);
 CREATE POLICY "Users can create posts" ON posts FOR INSERT WITH CHECK (auth.uid()::text = author_id::text);
 CREATE POLICY "Users can update own posts" ON posts FOR UPDATE USING (auth.uid()::text = author_id::text);
+CREATE POLICY "Users can interact with posts" ON posts FOR UPDATE USING (auth.uid() IS NOT NULL) WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Users can delete own posts" ON posts FOR DELETE USING (auth.uid()::text = author_id::text);
 
 -- Events: Anyone can read events, admins can create/update
@@ -173,9 +184,9 @@ CREATE POLICY "Users can create friendships" ON friendships FOR INSERT WITH CHEC
 CREATE POLICY "Users can update own friendships" ON friendships FOR UPDATE USING (auth.uid()::text = user_id::text);
 
 -- Insert default invitation code
-INSERT INTO invitation_codes (code, active, max_uses) 
-VALUES ('RENDEZVOUS2025', true, NULL)
-ON CONFLICT (code) DO NOTHING;
+INSERT INTO invitation_codes (code, active, max_uses, used_count) 
+VALUES ('RENDEZVOUS2025', true, NULL, 0)
+ON CONFLICT (code) DO UPDATE SET active = true;
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

@@ -10,6 +10,8 @@ const RegistrationPage = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     phone: '',
     address: '',
     instagram: '',
@@ -58,6 +60,18 @@ const RegistrationPage = () => {
       newErrors.phone = 'Phone number is required';
     }
 
+    if (!formData.password.trim()) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (!formData.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
     if (!formData.invitationCode.trim()) {
       newErrors.invitationCode = 'Invitation code is required';
     }
@@ -89,6 +103,7 @@ const RegistrationPage = () => {
         address: formData.address || undefined,
         socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
         profileImage: profileImage || undefined,
+        password: formData.password,
       },
       formData.invitationCode
     );
@@ -96,10 +111,12 @@ const RegistrationPage = () => {
     setIsSubmitting(false);
 
     if (success) {
-      alert('Registration successful! A confirmation email has been sent to your email address.');
+      alert('Registration successful! You have been logged in. Please check your email for a confirmation link.');
       navigate('/feed');
     } else {
-      setErrors({ invitationCode: 'Invalid invitation code' });
+      setErrors({ 
+        invitationCode: 'Registration failed. Please check your invitation code and try again.' 
+      });
     }
   };
 
@@ -173,6 +190,38 @@ const RegistrationPage = () => {
               placeholder="your.email@example.com"
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
+          </div>
+
+          {/* Password */}
+          <div className="form-group">
+            <label className="form-label">
+              Password <span className="required">*</span>
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className={`form-input ${errors.password ? 'error' : ''}`}
+              placeholder="At least 6 characters"
+            />
+            {errors.password && <span className="error-message">{errors.password}</span>}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="form-group">
+            <label className="form-label">
+              Confirm Password <span className="required">*</span>
+            </label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+              placeholder="Re-enter your password"
+            />
+            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
           </div>
 
           {/* Phone */}

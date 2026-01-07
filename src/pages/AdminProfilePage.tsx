@@ -2,17 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminUser, adminProfile } from '../data/dummyData';
 import { useApp } from '../context/AppContext';
-import { userService, postService } from '../services/supabaseService';
+import { userService, postService, eventService, announcementService } from '../services/supabaseService';
+import CreatePostModal from '../components/CreatePostModal';
+import PostInteractions from '../components/PostInteractions';
 import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
 import './AdminProfilePage.css';
 
 const AdminProfilePage = () => {
   const navigate = useNavigate();
-  const { events, announcements, posts } = useApp();
+  const { events, announcements, posts, setPosts, setEvents, setAnnouncements, currentUser } = useApp();
   const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'events' | 'posts' | 'gallery'>('about');
   const [friends, setFriends] = useState<any[]>([]);
   const [adminPosts, setAdminPosts] = useState<any[]>([]);
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const [stats, setStats] = useState({
     eventsHosted: 0,
     membersConnected: 0,
@@ -441,7 +444,15 @@ const AdminProfilePage = () => {
             <div className="posts-section">
               <div className="posts-header">
                 <h2 className="posts-title">Posts by Pernilla</h2>
-                <span className="posts-count">{stats.postsCount} {stats.postsCount === 1 ? 'post' : 'posts'}</span>
+                <div className="posts-header-right">
+                  <span className="posts-count">{stats.postsCount} {stats.postsCount === 1 ? 'post' : 'posts'}</span>
+                  <button 
+                    className="create-post-btn"
+                    onClick={() => setShowCreatePost(true)}
+                  >
+                    + Create Post
+                  </button>
+                </div>
               </div>
               
               <div className="admin-posts-list">
@@ -466,8 +477,125 @@ const AdminProfilePage = () => {
                           </span>
                         </div>
                       </div>
+                      {post.headline && (
+                        <h3 className="post-headline">{post.headline}</h3>
+                      )}
                       <p className="post-text">{post.content}</p>
-                      <div className="post-actions">
+                      {currentUser && (
+                        <PostInteractions
+                          post={post}
+                          currentUser={currentUser}
+                          onLike={async (postId) => {
+                            try {
+                              const post = adminPosts.find(p => p.id === postId);
+                              if (!post) return;
+                              
+                              const isLiked = post.likes.includes(currentUser.id);
+                              const updatedLikes = isLiked
+                                ? post.likes.filter((id: string) => id !== currentUser.id)
+                                : [...post.likes, currentUser.id];
+                              
+                              await postService.updatePost(postId, { likes: updatedLikes });
+                              const updatedPosts = await postService.getPosts();
+                              const adminPostsData = updatedPosts.filter(p => 
+                                p.authorId === adminUser.id || 
+                                p.authorId === currentUser.id ||
+                                p.authorName === adminUser.fullName
+                              );
+                              setAdminPosts(adminPostsData);
+                            } catch (error) {
+                              console.error('Error liking post:', error);
+                            }
+                          }}
+                          onComment={async (postId, commentText) => {
+                            try {
+                              const post = adminPosts.find(p => p.id === postId);
+                              if (!post) return;
+                              
+                              const newComment = {
+                                id: `comment-${Date.now()}`,
+                                authorId: currentUser.id,
+                                authorName: currentUser.fullName,
+                                authorImage: currentUser.profileImage,
+                                content: commentText,
+                                createdAt: new Date(),
+                              };
+                              
+                              const updatedComments = [...(post.comments || []), newComment];
+                              await postService.updatePost(postId, { comments: updatedComments });
+                              const updatedPosts = await postService.getPosts();
+                              const adminPostsData = updatedPosts.filter(p => 
+                                p.authorId === adminUser.id || 
+                                p.authorId === currentUser.id ||
+                                p.authorName === adminUser.fullName
+                              );
+                              setAdminPosts(adminPostsData);
+                            } catch (error) {
+                              console.error('Error adding comment:', error);
+                            }
+                          }}
+                          onRegisterInterest={async (postId) => {
+                            try {
+                              const post = adminPosts.find(p => p.id === postId);
+                              if (!post) return;
+                              
+                              const interestedUsers = post.interestedUsers || [];
+                              const isInterested = interestedUsers.includes(currentUser.id);
+                              const updatedInterested = isInterested
+                                ? interestedUsers.filter((id: string) => id !== currentUser.id)
+                                : [...interestedUsers, currentUser.id];
+                              
+                              await postService.updatePost(postId, { interestedUsers: updatedInterested });
+                              const updatedPosts = await postService.getPosts();
+                              const adminPostsData = updatedPosts.filter(p => 
+                                p.authorId === adminUser.id || 
+                                p.authorId === currentUser.id ||
+                                p.authorName === adminUser.fullName
+                              );
+                              setAdminPosts(adminPostsData);
+                            } catch (error) {
+                              console.error('Error registering interest:', error);
+                            }
+                          }}
+                          onAddToCalendar={(post) => {
+                            if (!post.eventDate) return;
+                            
+                            const startDate = new Date(post.eventDate);
+                            const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+                            
+                            const formatICSDate = (date: Date) => {
+                              return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                            };
+                            
+                            const icsContent = [
+                              'BEGIN:VCALENDAR',
+                              'VERSION:2.0',
+                              'PRODID:-//Rendezvous Social Club//EN',
+                              'BEGIN:VEVENT',
+                              `DTSTART:${formatICSDate(startDate)}`,
+                              `DTEND:${formatICSDate(endDate)}`,
+                              `SUMMARY:${post.headline || post.content.substring(0, 50)}`,
+                              `DESCRIPTION:${post.content}`,
+                              post.location ? `LOCATION:${post.location}` : '',
+                              'END:VEVENT',
+                              'END:VCALENDAR',
+                            ].filter(Boolean).join('\r\n');
+                            
+                            const blob = new Blob([icsContent], { type: 'text/calendar' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `${post.headline || 'event'}.ics`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                            
+                            alert('Calendar event downloaded! Open the .ics file to add to your calendar.');
+                          }}
+                        />
+                      )}
+                      <div className="post-actions" style={{ display: 'none' }}>
                         <button className="post-action-btn">
                           ❤️ {post.likes.length} Likes
                         </button>
@@ -506,6 +634,65 @@ const AdminProfilePage = () => {
       </div>
 
       <BottomNav />
+      
+      {/* Create Post Modal */}
+      {currentUser && (
+        <CreatePostModal
+          isOpen={showCreatePost}
+          onClose={() => setShowCreatePost(false)}
+          onSubmit={async (postData) => {
+            try {
+              // Create post in Supabase
+              await postService.createPost({
+                ...postData,
+                id: `post-${Date.now()}`,
+                createdAt: new Date(),
+              } as any);
+              
+              // If it's an event or announcement, create those too
+              if (postData.postType === 'event' && postData.eventDate) {
+                await eventService.createEvent({
+                  id: `evt-${Date.now()}`,
+                  title: postData.headline || 'New Event',
+                  description: postData.content || '',
+                  image: postData.image,
+                  date: postData.eventDate,
+                  location: postData.location,
+                  attendees: [],
+                  createdBy: currentUser.id,
+                });
+              } else if (postData.postType === 'announcement' && postData.eventDate) {
+                await announcementService.createAnnouncement({
+                  id: `ann-${Date.now()}`,
+                  title: postData.headline || 'New Announcement',
+                  content: postData.content || '',
+                  image: postData.image,
+                  date: postData.eventDate.toISOString(),
+                  type: 'event',
+                  created_by: currentUser.id,
+                });
+              }
+              
+              // Reload posts
+              const updatedPosts = await postService.getPosts();
+              setPosts(updatedPosts);
+              
+              // Reload events and announcements if needed
+              if (postData.postType === 'event') {
+                const updatedEvents = await eventService.getEvents();
+                setEvents(updatedEvents);
+              } else if (postData.postType === 'announcement') {
+                const updatedAnnouncements = await announcementService.getAnnouncements();
+                setAnnouncements(updatedAnnouncements);
+              }
+            } catch (error) {
+              console.error('Error creating post:', error);
+              alert('Failed to create post. Please try again.');
+            }
+          }}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   );
 };
