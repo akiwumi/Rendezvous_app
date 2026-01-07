@@ -4,7 +4,7 @@ import { Announcement, Event, User, Post } from '../types';
 export const adminUser: User = {
   id: 'admin-1',
   fullName: 'Pernilla Ewarldsson',
-  email: 'pernilla@rendezvous.club',
+  email: 'akiwumi@icloud.com',
   phone: '+34 971 123 456',
   address: 'Palma de Mallorca, Spain',
   profileImage: '/pernilla.png',

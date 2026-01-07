@@ -16,10 +16,13 @@ An exclusive private social club mobile application built with React, TypeScript
 - **Profile** - User profiles with tabs for About, Friends, Liked Posts, Events, and Reminders. Dynamic routing for viewing any user's profile (`/profile/:userId`)
 - **Admin Profile** - Complete profile page for Pernilla Ewarldsson with bio, achievements, hosted events, posts, and gallery
 - **Friends System** - Facebook-style friends list with profile images, clickable cards, and navigation to friend profiles
-- **User Profiles** - Six dummy user profiles with personalized biographies and full profile information
+- **User Profiles** - User profiles with personalized biographies and full profile information (loaded from Supabase)
 - **Notifications** - Notification system for posts, events, announcements, and updates
 - **Watermarks** - Automatic logo watermark on all admin-created content (posts, announcements, events)
 - **Pull-to-Refresh** - Facebook-like pull-to-refresh functionality on main content pages (Feed, Announcements, Events, Notifications)
+- **Supabase Integration** - Full backend integration with Supabase for authentication, database, and real-time features
+- **Live Statistics** - Dynamic stats on admin profile (events hosted, members, years active, countries) calculated from actual database data
+- **Data-Driven** - All content (posts, events, announcements, users) is loaded from Supabase database, no dummy data in codebase
 
 ## Design System
 
@@ -61,7 +64,9 @@ src/
 ├── pages/           # Page components
 ├── context/         # React context for state management
 ├── types/           # TypeScript type definitions
-├── data/            # Dummy data and mock data
+├── data/            # Static data (admin profile info, design system)
+├── services/        # Supabase service layer
+├── utils/           # Utility functions (database helpers)
 └── design-system.css # Design system CSS variables
 ```
 
@@ -81,15 +86,29 @@ src/
 
 ## Authentication
 
+The app uses Supabase Authentication with fallback to demo credentials for development.
+
 ### Login
 The landing page now includes **Login** and **Register** buttons. Users must choose an option to proceed.
 
-**Demo Login Credentials:**
+**Demo Login Credentials (for development):**
 - Email: `demo@rendezvous.club`
 - Password: `demo123`
 
+**Supabase Authentication:**
+- Users can register and login with email/password
+- Sessions are managed by Supabase
+- Auto-login on app reload if session exists
+
 ### Registration
 To register, use the invitation code: `RENDEZVOUS2025`
+
+**Registration Process:**
+1. User provides email, password, and profile information
+2. Invitation code is validated against Supabase database
+3. User account is created in Supabase Auth
+4. User profile is saved to Supabase database
+5. User is automatically logged in
 
 Required fields:
 - Full Name
@@ -106,16 +125,21 @@ Optional fields:
 
 A complete admin profile page has been created for Pernilla Ewarldsson (`/admin-profile`). The profile includes:
 - **Hero Section** with Mallorca beach background
-- **Profile Stats**: Events hosted, members connected, years active, countries represented
+- **Live Profile Stats**: Dynamically calculated from database:
+  - **Events Hosted**: Count of events created by admin
+  - **Members**: Count of all non-admin users
+  - **Years Active**: Calculated from member since date (2018-03-15)
+  - **Countries**: Unique countries extracted from user addresses
+  - **Posts**: Count of posts authored by admin
 - **Social Links**: Instagram, Facebook, Twitter, LinkedIn
 - **Tabs**: About (bio, achievements, interests, languages), Friends, Events, Posts, Gallery
 - **Friends Section**: Facebook-style grid displaying all connected members with clickable profile cards (placed on its own line in the tabs)
 - **Achievements**: List of notable accomplishments
-- **Events Section**: All hosted events with images and details
-- **Posts Section**: All admin posts
+- **Events Section**: All hosted events with images and details (loaded from Supabase)
+- **Posts Section**: All admin posts (loaded from Supabase)
 - **Gallery**: Photo gallery of past events
 
-The admin profile for Pernilla Ewarldsson is automatically available. All new members are automatically added as friends with the admin. The Friends tab displays all 6 dummy user profiles and allows navigation to each member's profile.
+The admin profile for Pernilla Ewarldsson is automatically available. All new members are automatically added as friends with the admin. The Friends tab displays all members from the database and allows navigation to each member's profile.
 
 ## Navigation Features
 
@@ -172,7 +196,7 @@ Place the following images in the `public/` directory:
 
 ## User Profiles
 
-The app includes six dummy user profiles with complete information:
+User profiles are loaded from the Supabase database. The seed data includes six sample user profiles with complete information:
 - **Marcus von Habsburg** - Investment banker and wine connoisseur
 - **Isabella Rossi** - Italian fashion designer and art enthusiast
 - **James Chen** - Tech entrepreneur and photography enthusiast
@@ -189,7 +213,7 @@ Each profile includes:
 - Registered events
 - Liked posts
 
-All users are automatically friends with the admin (Pernilla Ewarldsson).
+All users are automatically friends with the admin (Pernilla Ewarldsson). Profiles are dynamically loaded from the database and support real-time updates.
 
 ## Watermark Feature
 
@@ -225,7 +249,47 @@ Users can add the app to their iPhone home screen by:
 - TypeScript
 - Vite
 - React Router DOM
+- Supabase - Backend as a Service (Authentication, Database, Storage)
 - CSS Variables for theming
+
+## Supabase Integration
+
+The app is fully integrated with Supabase for backend functionality:
+
+### Features
+- **Authentication**: User registration and login with Supabase Auth
+- **Database**: PostgreSQL database with Row Level Security (RLS)
+- **Real-time**: Ready for real-time subscriptions
+- **Storage**: Ready for file uploads (images, documents)
+
+### Setup
+1. **Environment Variables**: Create a `.env` file with your Supabase credentials (see `SUPABASE_SETUP.md`)
+2. **Database Schema**: Run the SQL script in `SUPABASE_SCHEMA.sql` in your Supabase SQL Editor
+3. **Seed Data**: Run the SQL script in `SUPABASE_SEED_DATA.sql` to populate the database with test data (see `README_SEED_DATA.md` for instructions)
+4. **Authentication**: Configure email authentication in Supabase Dashboard
+5. **Create Admin User**: Create the admin user in Supabase Auth with email `akiwumi@icloud.com` and use the UUID in the seed script
+
+### Current Configuration
+- **Project URL**: https://qsqpoogatwwtydbrfans.supabase.co
+- **Project ID**: qsqpoogatwwtydbrfans
+- **Admin Email**: akiwumi@icloud.com
+- **Admin UUID**: d8750992-cb10-485d-8d45-2746af3db391
+- Credentials are configured in the codebase (can be moved to `.env` for production)
+
+### Data Management
+- **All data is loaded from Supabase**: Posts, events, announcements, users, and notifications are fetched from the database
+- **No dummy data in codebase**: All dummy data has been removed and replaced with database queries
+- **Live statistics**: Admin profile stats are calculated dynamically from actual database data
+- **Real-time ready**: The app is structured to support Supabase real-time subscriptions
+
+### Fallback Support
+- The app gracefully falls back to empty states if Supabase is unavailable
+- Demo credentials (`demo@rendezvous.club` / `demo123`) still work for development
+- All Supabase operations have error handling and fallbacks
+
+For detailed setup instructions, see:
+- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Database setup guide
+- [README_SEED_DATA.md](./README_SEED_DATA.md) - Seed data instructions
 
 ## License
 

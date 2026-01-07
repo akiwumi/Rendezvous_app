@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { adminUser, dummyUsers } from '../data/dummyData';
+import { userService } from '../services/supabaseService';
+import { adminUser } from '../data/dummyData';
 import AppHeader from '../components/AppHeader';
 import './SearchPage.css';
 
@@ -9,11 +10,21 @@ const SearchPage = () => {
   const { currentUser } = useApp();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [members] = useState([
-    adminUser,
-    ...dummyUsers,
-    // In a real app, this would come from a database
-  ]);
+  const [members, setMembers] = useState([adminUser]);
+
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        const users = await userService.getAllUsers();
+        setMembers([adminUser, ...users]);
+      } catch (error) {
+        console.error('Error loading members:', error);
+        // Fallback to admin user only
+        setMembers([adminUser]);
+      }
+    };
+    loadMembers();
+  }, []);
 
   const filteredMembers = members.filter(member =>
     member.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -19,24 +19,19 @@ const LoginPage = () => {
     if (error) setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     
-    // Dummy credentials
-    const dummyCredentials = {
-      email: 'demo@rendezvous.club',
-      password: 'demo123',
-    };
-
-    if (formData.email === dummyCredentials.email && formData.password === dummyCredentials.password) {
-      const success = loginUser(dummyCredentials.email, dummyCredentials.password);
+    try {
+      const success = await loginUser(formData.email, formData.password);
       if (success) {
         navigate('/announcements');
       } else {
-        setError('Login failed. Please try again.');
+        setError('Invalid email or password. Use: demo@rendezvous.club / demo123');
       }
-    } else {
-      setError('Invalid email or password. Use: demo@rendezvous.club / demo123');
+    } catch (error: any) {
+      setError(error.message || 'Login failed. Please try again.');
     }
   };
 

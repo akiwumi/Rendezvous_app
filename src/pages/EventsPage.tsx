@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { dummyEvents } from '../data/dummyData';
 import { Event } from '../types';
+import { eventService } from '../services/supabaseService';
 import AppHeader from '../components/AppHeader';
 import PullToRefresh from '../components/PullToRefresh';
 import './EventsPage.css';
 
 const EventsPage = () => {
-  const { currentUser, events, registerForEvent } = useApp();
-  const [allEvents, setAllEvents] = useState<Event[]>([...dummyEvents, ...events]);
+  const { currentUser, events, setEvents, registerForEvent } = useApp();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
 
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const data = await eventService.getEvents();
+        setEvents(data);
+      } catch (error) {
+        console.error('Error loading events:', error);
+      }
+    };
+    if (events.length === 0) {
+      loadEvents();
+    }
+  }, [events.length, setEvents]);
+
   const handleRefresh = async () => {
-    // Simulate refresh - in a real app, this would fetch new events
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setAllEvents([...dummyEvents, ...events]);
+    try {
+      const data = await eventService.getEvents();
+      setEvents(data);
+    } catch (error) {
+      console.error('Error refreshing events:', error);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -36,7 +52,7 @@ const EventsPage = () => {
     }
 
     registerForEvent(eventId, currentUser.id);
-    const event = allEvents.find(e => e.id === eventId);
+    const event = events.find(e => e.id === eventId);
     if (event) {
       alert(`You've registered your interest for "${event.title}". The admin has been notified.`);
     }
@@ -58,7 +74,7 @@ const EventsPage = () => {
         <div className="events-content">
         <h1 className="page-title">Upcoming Events</h1>
         <div className="events-list">
-          {allEvents.map((event) => (
+          {events.map((event) => (
             <div key={event.id} className="event-card">
               {event.image && (
                 <div className={`event-image-container ${event.createdBy === 'admin-1' ? 'has-admin-watermark' : ''}`}>

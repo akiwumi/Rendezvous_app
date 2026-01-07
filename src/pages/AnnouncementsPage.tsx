@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { dummyAnnouncements } from '../data/dummyData';
 import { Announcement } from '../types';
+import { announcementService } from '../services/supabaseService';
 import AppHeader from '../components/AppHeader';
 import PullToRefresh from '../components/PullToRefresh';
 import './AnnouncementsPage.css';
 
 const AnnouncementsPage = () => {
   const navigate = useNavigate();
-  const { currentUser } = useApp();
-  const [announcements, setAnnouncements] = useState<Announcement[]>(dummyAnnouncements);
+  const { currentUser, announcements, setAnnouncements } = useApp();
+
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      try {
+        const data = await announcementService.getAnnouncements();
+        setAnnouncements(data);
+      } catch (error) {
+        console.error('Error loading announcements:', error);
+      }
+    };
+    if (announcements.length === 0) {
+      loadAnnouncements();
+    }
+  }, [announcements.length, setAnnouncements]);
 
   const handleRefresh = async () => {
-    // Simulate refresh - in a real app, this would fetch new announcements
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setAnnouncements([...dummyAnnouncements]);
+    try {
+      const data = await announcementService.getAnnouncements();
+      setAnnouncements(data);
+    } catch (error) {
+      console.error('Error refreshing announcements:', error);
+    }
   };
 
   const formatDate = (date: Date) => {

@@ -1,16 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Post } from '../types';
-import { dummyPosts } from '../data/dummyData';
+import { postService } from '../services/supabaseService';
 import AppHeader from '../components/AppHeader';
 import PullToRefresh from '../components/PullToRefresh';
 import './FeedPage.css';
 
 const FeedPage = () => {
   const navigate = useNavigate();
-  const { currentUser, posts, addPost } = useApp();
-  const [allPosts, setAllPosts] = useState<Post[]>([...dummyPosts, ...posts]);
+  const { currentUser, posts, setPosts, addPost } = useApp();
+
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        const data = await postService.getPosts();
+        setPosts(data);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      }
+    };
+    if (posts.length === 0) {
+      loadPosts();
+    }
+  }, [posts.length, setPosts]);
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostImage, setNewPostImage] = useState<string | null>(null);
   const [showPostForm, setShowPostForm] = useState(false);
@@ -34,10 +46,10 @@ const FeedPage = () => {
     }
   };
 
-  const handleSubmitPost = () => {
+  const handleSubmitPost = async () => {
     if (!currentUser || !newPostContent.trim()) return;
 
-    const newPost: Post = {
+    const newPost = {
       id: `post-${Date.now()}`,
       authorId: currentUser.id,
       authorName: currentUser.fullName,
@@ -49,17 +61,19 @@ const FeedPage = () => {
       comments: [],
     };
 
-    addPost(newPost);
-    setAllPosts([newPost, ...allPosts]);
+    await addPost(newPost);
     setNewPostContent('');
     setNewPostImage(null);
     setShowPostForm(false);
   };
 
   const handleRefresh = async () => {
-    // Simulate refresh - in a real app, this would fetch new posts
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setAllPosts([...dummyPosts, ...posts]);
+    try {
+      const data = await postService.getPosts();
+      setPosts(data);
+    } catch (error) {
+      console.error('Error refreshing posts:', error);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -149,7 +163,7 @@ const FeedPage = () => {
         )}
 
         <div className="posts-list">
-          {allPosts.map((post) => (
+          {posts.map((post) => (
             <div key={post.id} className="post-card">
               <div className="post-header">
                 <div className="post-author">

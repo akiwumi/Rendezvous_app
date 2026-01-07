@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { adminUser, dummyPosts, dummyUsers } from '../data/dummyData';
+import { adminUser } from '../data/dummyData';
+import { userService, postService } from '../services/supabaseService';
 import AppHeader from '../components/AppHeader';
 import './ProfilePage.css';
 
@@ -10,6 +11,9 @@ const ProfilePage = () => {
   const { userId } = useParams<{ userId?: string }>();
   const { currentUser, events } = useApp();
   const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'posts' | 'events' | 'reminders'>('about');
+  const [profileUser, setProfileUser] = useState(adminUser);
+  const [allUsers, setAllUsers] = useState([adminUser]);
+  const [likedPosts, setLikedPosts] = useState<any[]>([]);
 
   const handleProfileClick = (authorId: string) => {
     if (authorId === 'admin-1') {
@@ -25,12 +29,56 @@ const ProfilePage = () => {
     }
   };
 
-  // Get user profile based on URL params or current user
-  const allUsers = [adminUser, ...dummyUsers];
-  const profileUser = userId 
-    ? allUsers.find(u => u.id === userId) || adminUser
-    : (currentUser || adminUser);
-  
+  // Load user data
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        // Load all users
+        const users = await userService.getAllUsers();
+        setAllUsers([adminUser, ...users]);
+
+        // Load profile user
+        if (userId) {
+          if (userId === 'admin-1') {
+            setProfileUser(adminUser);
+          } else {
+            try {
+              const user = await userService.getUser(userId);
+              setProfileUser(user);
+            } catch (error) {
+              console.error('Error loading user:', error);
+              setProfileUser(adminUser);
+            }
+          }
+        } else {
+          setProfileUser(currentUser || adminUser);
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    };
+
+    loadUserData();
+  }, [userId, currentUser]);
+
+  // Load liked posts
+  useEffect(() => {
+    if (profileUser?.likedPosts && profileUser.likedPosts.length > 0) {
+      const loadLikedPosts = async () => {
+        try {
+          const postPromises = profileUser.likedPosts!.map(postId => 
+            postService.getPost(postId).catch(() => null)
+          );
+          const loadedPosts = await Promise.all(postPromises);
+          setLikedPosts(loadedPosts.filter(p => p !== null));
+        } catch (error) {
+          console.error('Error loading liked posts:', error);
+        }
+      };
+      loadLikedPosts();
+    }
+  }, [profileUser]);
+
   const profile = profileUser;
   const isAdmin = profile.isAdmin || profile.id === adminUser.id;
 
@@ -38,9 +86,6 @@ const ProfilePage = () => {
   const friends = profile.friends
     .map(friendId => allUsers.find(u => u.id === friendId))
     .filter((friend): friend is typeof adminUser => friend !== undefined);
-
-  // Dummy liked posts
-  const likedPosts = dummyPosts.slice(0, 2);
   
   // User's registered events
   const registeredEvents = events.filter(event => 

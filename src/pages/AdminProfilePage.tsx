@@ -1,26 +1,106 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminUser, adminProfile, dummyPosts, dummyEvents, dummyAnnouncements, dummyUsers } from '../data/dummyData';
+import { adminUser, adminProfile } from '../data/dummyData';
+import { useApp } from '../context/AppContext';
+import { userService, postService } from '../services/supabaseService';
 import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
 import './AdminProfilePage.css';
 
 const AdminProfilePage = () => {
   const navigate = useNavigate();
+  const { events, announcements, posts } = useApp();
   const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'events' | 'posts' | 'gallery'>('about');
+  const [friends, setFriends] = useState<any[]>([]);
+  const [adminPosts, setAdminPosts] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    eventsHosted: 0,
+    membersConnected: 0,
+    yearsActive: 0,
+    countriesRepresented: 0,
+    postsCount: 0,
+  });
+  
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Load admin user from database to get actual UUID
+        let actualAdminUser = adminUser;
+        try {
+          const adminFromDb = await userService.getUserByEmail('akiwumi@icloud.com');
+          if (adminFromDb) {
+            actualAdminUser = adminFromDb;
+          }
+        } catch (error) {
+          console.log('Admin user not found in DB, using default');
+        }
+
+        // Load all users (friends) - exclude admin
+        const users = await userService.getAllUsers();
+        const nonAdminUsers = users.filter(u => u.email !== 'akiwumi@icloud.com');
+        setFriends(nonAdminUsers);
+
+        // Load admin posts - check by admin ID or email
+        const allPosts = await postService.getPosts();
+        const adminPostsData = allPosts.filter(post => 
+          post.authorId === adminUser.id || 
+          post.authorId === actualAdminUser.id ||
+          post.authorName === adminUser.fullName
+        );
+        setAdminPosts(adminPostsData);
+
+        // Calculate live stats
+        const eventsHosted = events.filter(e => 
+          e.createdBy === adminUser.id || 
+          e.createdBy === actualAdminUser.id ||
+          e.createdBy === 'admin-1' ||
+          e.createdBy === 'd8750992-cb10-485d-8d45-2746af3db391'
+        ).length;
+        
+        const membersConnected = nonAdminUsers.length;
+        
+        const yearsActive = Math.max(1, Math.floor((new Date().getTime() - adminProfile.memberSince.getTime()) / (1000 * 60 * 60 * 24 * 365)));
+        
+        // Extract unique countries from user addresses
+        const allUserAddresses = [adminUser.address, ...nonAdminUsers.map(u => u.address)].filter(Boolean);
+        const countries = new Set(
+          allUserAddresses.map(addr => {
+            // Extract country from address (assuming format like "City, Country")
+            const parts = addr?.split(',').map(s => s.trim());
+            return parts && parts.length > 1 ? parts[parts.length - 1] : 'Unknown';
+          })
+        );
+        const countriesRepresented = Math.max(1, countries.size);
+
+        const postsCount = adminPostsData.length;
+
+        setStats({
+          eventsHosted,
+          membersConnected,
+          yearsActive,
+          countriesRepresented,
+          postsCount,
+        });
+      } catch (error) {
+        console.error('Error loading admin profile data:', error);
+      }
+    };
+    loadData();
+  }, [events, posts]);
   
   const handleFriendClick = (friendId: string) => {
     navigate(`/profile/${friendId}`);
   };
   
-  // Get all friends (dummy users)
-  const friends = dummyUsers;
-
-  // Admin's posts
-  const adminPosts = dummyPosts.filter(post => post.authorId === adminUser.id);
-  
-  // All events (admin created all)
-  const hostedEvents = dummyEvents;
+  // Filter events created by admin
+  const hostedEvents = events.filter(e => {
+    const adminIds = [
+      adminUser.id,
+      'admin-1',
+      'd8750992-cb10-485d-8d45-2746af3db391'
+    ];
+    return adminIds.includes(e.createdBy);
+  });
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -99,19 +179,19 @@ const AdminProfilePage = () => {
           {/* Stats Grid */}
           <div className="admin-stats-grid">
             <div className="admin-stat-card">
-              <span className="admin-stat-value">{adminProfile.stats.eventsHosted}</span>
+              <span className="admin-stat-value">{stats.eventsHosted}</span>
               <span className="admin-stat-label">Events Hosted</span>
             </div>
             <div className="admin-stat-card">
-              <span className="admin-stat-value">{adminProfile.stats.membersConnected}</span>
+              <span className="admin-stat-value">{stats.membersConnected}</span>
               <span className="admin-stat-label">Members</span>
             </div>
             <div className="admin-stat-card">
-              <span className="admin-stat-value">{adminProfile.stats.yearsActive}</span>
+              <span className="admin-stat-value">{stats.yearsActive}</span>
               <span className="admin-stat-label">Years Active</span>
             </div>
             <div className="admin-stat-card">
-              <span className="admin-stat-value">{adminProfile.stats.countriesRepresented}</span>
+              <span className="admin-stat-value">{stats.countriesRepresented}</span>
               <span className="admin-stat-label">Countries</span>
             </div>
           </div>
@@ -302,7 +382,7 @@ const AdminProfilePage = () => {
             <div className="events-section">
               <div className="events-header">
                 <h2 className="events-title">Hosted Events</h2>
-                <span className="events-count">{hostedEvents.length} events</span>
+                <span className="events-count">{stats.eventsHosted} {stats.eventsHosted === 1 ? 'event' : 'events'}</span>
               </div>
               
               {/* Upcoming Events */}
@@ -345,7 +425,7 @@ const AdminProfilePage = () => {
               <div className="events-category">
                 <h3 className="category-title">Recent Announcements</h3>
                 <div className="announcements-preview">
-                  {dummyAnnouncements.slice(0, 3).map((announcement) => (
+                  {announcements.slice(0, 3).map((announcement) => (
                     <div key={announcement.id} className="announcement-mini">
                       <span className="announcement-type">{announcement.type}</span>
                       <h4>{announcement.title}</h4>
@@ -361,7 +441,7 @@ const AdminProfilePage = () => {
             <div className="posts-section">
               <div className="posts-header">
                 <h2 className="posts-title">Posts by Pernilla</h2>
-                <span className="posts-count">{adminPosts.length} posts</span>
+                <span className="posts-count">{stats.postsCount} {stats.postsCount === 1 ? 'post' : 'posts'}</span>
               </div>
               
               <div className="admin-posts-list">
