@@ -1,7 +1,9 @@
 .announcements-page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: var(--bg-primary);
-  padding-bottom: calc(var(--nav-height) + var(--search-bar-height) + var(--spacing-md));
+  overflow: hidden;
 }
 
 /* Hero Section */
@@ -64,6 +66,8 @@
 
 .announcements-content {
   padding: var(--spacing-md) var(--screen-padding-h);
+  padding-bottom: calc(var(--nav-height) + var(--search-bar-height) + var(--spacing-md));
+  flex: 1;
 }
 
 .announcements-header {

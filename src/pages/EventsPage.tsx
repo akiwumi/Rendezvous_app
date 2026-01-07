@@ -3,13 +3,20 @@ import { useApp } from '../context/AppContext';
 import { dummyEvents } from '../data/dummyData';
 import { Event } from '../types';
 import AppHeader from '../components/AppHeader';
+import PullToRefresh from '../components/PullToRefresh';
 import './EventsPage.css';
 
 const EventsPage = () => {
   const { currentUser, events, registerForEvent } = useApp();
-  const [allEvents] = useState<Event[]>([...dummyEvents, ...events]);
+  const [allEvents, setAllEvents] = useState<Event[]>([...dummyEvents, ...events]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+
+  const handleRefresh = async () => {
+    // Simulate refresh - in a real app, this would fetch new events
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setAllEvents([...dummyEvents, ...events]);
+  };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -47,7 +54,8 @@ const EventsPage = () => {
   return (
     <div className="events-page">
       <AppHeader />
-      <div className="events-content">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="events-content">
         <h1 className="page-title">Upcoming Events</h1>
         <div className="events-list">
           {allEvents.map((event) => (
@@ -115,7 +123,8 @@ const EventsPage = () => {
             </div>
           ))}
         </div>
-      </div>
+        </div>
+      </PullToRefresh>
 
       {showCalendar && selectedEvent && (
         <div className="calendar-modal-overlay" onClick={() => setShowCalendar(false)}>

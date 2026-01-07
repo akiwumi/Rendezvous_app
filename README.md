@@ -19,6 +19,7 @@ An exclusive private social club mobile application built with React, TypeScript
 - **User Profiles** - Six dummy user profiles with personalized biographies and full profile information
 - **Notifications** - Notification system for posts, events, announcements, and updates
 - **Watermarks** - Automatic logo watermark on all admin-created content (posts, announcements, events)
+- **Pull-to-Refresh** - Facebook-like pull-to-refresh functionality on main content pages (Feed, Announcements, Events, Notifications)
 
 ## Design System
 
@@ -130,6 +131,14 @@ The admin profile for Pernilla Ewarldsson is automatically available. All new me
   - Advanced options expand smoothly when activated
   - Modal can be closed via close button or backdrop click
   - Body scroll is locked when search is open to prevent positioning issues
+- **Pull-to-Refresh**: Facebook-style pull-to-refresh functionality on main content pages. Features:
+  - Pull down from the top of the page to refresh content
+  - Visual feedback with animated arrow that rotates as you pull
+  - Text indicators: "Pull to refresh" → "Release to refresh" → "Refreshing..."
+  - Loading spinner appears during refresh
+  - Only activates when scrolled to the top of the page
+  - Available on Feed, Announcements, Events, and Notifications pages
+  - Smooth animations and natural pull resistance
 
 ## Public Assets
 

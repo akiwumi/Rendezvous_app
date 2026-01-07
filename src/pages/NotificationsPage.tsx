@@ -1,5 +1,6 @@
 import { useApp } from '../context/AppContext';
 import AppHeader from '../components/AppHeader';
+import PullToRefresh from '../components/PullToRefresh';
 import './NotificationsPage.css';
 
 const NotificationsPage = () => {
@@ -20,6 +21,11 @@ const NotificationsPage = () => {
       month: 'short',
       day: 'numeric',
     }).format(new Date(date));
+  };
+
+  const handleRefresh = async () => {
+    // Simulate refresh - in a real app, this would fetch new notifications
+    await new Promise(resolve => setTimeout(resolve, 1000));
   };
 
   const getNotificationIcon = (type: string) => {
@@ -51,7 +57,8 @@ const NotificationsPage = () => {
   return (
     <div className="notifications-page">
       <AppHeader />
-      <div className="notifications-content">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="notifications-content">
         <div className="notifications-header">
           <h1 className="page-title">Notifications</h1>
           {notifications.some(n => !n.read) && (
@@ -113,7 +120,8 @@ const NotificationsPage = () => {
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </PullToRefresh>
     </div>
   );
 };

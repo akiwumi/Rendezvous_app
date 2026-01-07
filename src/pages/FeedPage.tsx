@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { Post } from '../types';
 import { dummyPosts } from '../data/dummyData';
 import AppHeader from '../components/AppHeader';
+import PullToRefresh from '../components/PullToRefresh';
 import './FeedPage.css';
 
 const FeedPage = () => {
@@ -55,6 +56,12 @@ const FeedPage = () => {
     setShowPostForm(false);
   };
 
+  const handleRefresh = async () => {
+    // Simulate refresh - in a real app, this would fetch new posts
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setAllPosts([...dummyPosts, ...posts]);
+  };
+
   const formatDate = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - new Date(date).getTime();
@@ -88,7 +95,8 @@ const FeedPage = () => {
   return (
     <div className="feed-page">
       <AppHeader />
-      <div className="feed-content">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="feed-content">
         <div className="feed-header">
           <h1 className="page-title">Your Feed</h1>
           <button
@@ -186,7 +194,8 @@ const FeedPage = () => {
             </div>
           ))}
         </div>
-      </div>
+        </div>
+      </PullToRefresh>
     </div>
   );
 };

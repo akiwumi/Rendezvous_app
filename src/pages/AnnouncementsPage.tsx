@@ -4,12 +4,19 @@ import { useApp } from '../context/AppContext';
 import { dummyAnnouncements } from '../data/dummyData';
 import { Announcement } from '../types';
 import AppHeader from '../components/AppHeader';
+import PullToRefresh from '../components/PullToRefresh';
 import './AnnouncementsPage.css';
 
 const AnnouncementsPage = () => {
   const navigate = useNavigate();
   const { currentUser } = useApp();
-  const [announcements] = useState<Announcement[]>(dummyAnnouncements);
+  const [announcements, setAnnouncements] = useState<Announcement[]>(dummyAnnouncements);
+
+  const handleRefresh = async () => {
+    // Simulate refresh - in a real app, this would fetch new announcements
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setAnnouncements([...dummyAnnouncements]);
+  };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -35,9 +42,9 @@ const AnnouncementsPage = () => {
   return (
     <div className="announcements-page">
       <AppHeader />
-      
-      {/* Hero Section */}
-      <div className="hero-section">
+      <PullToRefresh onRefresh={handleRefresh}>
+        {/* Hero Section */}
+        <div className="hero-section">
         <img 
           src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800"
           alt="Rendezvous Social Club"
@@ -97,7 +104,8 @@ const AnnouncementsPage = () => {
             </div>
           ))}
         </div>
-      </div>
+        </div>
+      </PullToRefresh>
     </div>
   );
 };
