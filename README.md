@@ -103,16 +103,17 @@ Optional fields:
 ## Admin Profile
 
 A complete admin profile page has been created for Pernilla Ewarldsson (`/admin-profile`). The profile includes:
-- **Hero Section** with Mallorca landscape background
+- **Hero Section** with Mallorca beach background
 - **Profile Stats**: Events hosted, members connected, years active, countries represented
 - **Social Links**: Instagram, Facebook, Twitter, LinkedIn
-- **Tabs**: About (bio, achievements, interests, languages), Events, Posts, Gallery
+- **Tabs**: About (bio, achievements, interests, languages), Friends, Events, Posts, Gallery
+- **Friends Section**: Facebook-style grid displaying all connected members with clickable profile cards (placed on its own line in the tabs)
 - **Achievements**: List of notable accomplishments
 - **Events Section**: All hosted events with images and details
 - **Posts Section**: All admin posts
 - **Gallery**: Photo gallery of past events
 
-The admin profile for Pernilla Ewarldsson is automatically available. All new members are automatically added as friends with the admin.
+The admin profile for Pernilla Ewarldsson is automatically available. All new members are automatically added as friends with the admin. The Friends tab displays all 6 dummy user profiles and allows navigation to each member's profile.
 
 ## Navigation Features
 

@@ -1,11 +1,20 @@
 import { useState } from 'react';
-import { adminUser, adminProfile, dummyPosts, dummyEvents, dummyAnnouncements } from '../data/dummyData';
+import { useNavigate } from 'react-router-dom';
+import { adminUser, adminProfile, dummyPosts, dummyEvents, dummyAnnouncements, dummyUsers } from '../data/dummyData';
 import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
 import './AdminProfilePage.css';
 
 const AdminProfilePage = () => {
-  const [activeTab, setActiveTab] = useState<'about' | 'events' | 'posts' | 'gallery'>('about');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'events' | 'posts' | 'gallery'>('about');
+  
+  const handleFriendClick = (friendId: string) => {
+    navigate(`/profile/${friendId}`);
+  };
+  
+  // Get all friends (dummy users)
+  const friends = dummyUsers;
 
   // Admin's posts
   const adminPosts = dummyPosts.filter(post => post.authorId === adminUser.id);
@@ -133,30 +142,38 @@ const AdminProfilePage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="admin-tabs">
+        <div className="admin-tabs-container">
+          <div className="admin-tabs">
+            <button
+              className={`admin-tab-btn ${activeTab === 'about' ? 'active' : ''}`}
+              onClick={() => setActiveTab('about')}
+            >
+              About
+            </button>
+            <button
+              className={`admin-tab-btn ${activeTab === 'events' ? 'active' : ''}`}
+              onClick={() => setActiveTab('events')}
+            >
+              Events
+            </button>
+            <button
+              className={`admin-tab-btn ${activeTab === 'posts' ? 'active' : ''}`}
+              onClick={() => setActiveTab('posts')}
+            >
+              Posts
+            </button>
+            <button
+              className={`admin-tab-btn ${activeTab === 'gallery' ? 'active' : ''}`}
+              onClick={() => setActiveTab('gallery')}
+            >
+              Gallery
+            </button>
+          </div>
           <button
-            className={`admin-tab-btn ${activeTab === 'about' ? 'active' : ''}`}
-            onClick={() => setActiveTab('about')}
+            className={`admin-tab-btn admin-tab-btn-full ${activeTab === 'friends' ? 'active' : ''}`}
+            onClick={() => setActiveTab('friends')}
           >
-            About
-          </button>
-          <button
-            className={`admin-tab-btn ${activeTab === 'events' ? 'active' : ''}`}
-            onClick={() => setActiveTab('events')}
-          >
-            Events
-          </button>
-          <button
-            className={`admin-tab-btn ${activeTab === 'posts' ? 'active' : ''}`}
-            onClick={() => setActiveTab('posts')}
-          >
-            Posts
-          </button>
-          <button
-            className={`admin-tab-btn ${activeTab === 'gallery' ? 'active' : ''}`}
-            onClick={() => setActiveTab('gallery')}
-          >
-            Gallery
+            Friends ({friends.length})
           </button>
         </div>
 
@@ -225,6 +242,48 @@ const AdminProfilePage = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'friends' && (
+            <div className="friends-section">
+              <div className="friends-header">
+                <h2 className="friends-title">Friends ({friends.length})</h2>
+                <span className="friends-subtitle">All members connected with Pernilla</span>
+              </div>
+              
+              {friends.length === 0 ? (
+                <div className="empty-state">
+                  <span className="empty-icon">👥</span>
+                  <p>No friends yet</p>
+                </div>
+              ) : (
+                <div className="friends-grid">
+                  {friends.map((friend) => (
+                    <div 
+                      key={friend.id} 
+                      className="friend-card"
+                      onClick={() => handleFriendClick(friend.id)}
+                    >
+                      {friend.profileImage ? (
+                        <img
+                          src={friend.profileImage}
+                          alt={friend.fullName}
+                          className="friend-avatar"
+                        />
+                      ) : (
+                        <div className="friend-avatar-placeholder">
+                          {friend.fullName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="friend-name">{friend.fullName}</div>
+                      {friend.address && (
+                        <div className="friend-location">📍 {friend.address}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
