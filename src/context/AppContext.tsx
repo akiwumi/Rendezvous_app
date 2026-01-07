@@ -18,6 +18,9 @@ interface AppContextType {
   loginUser: (email: string, password: string) => boolean;
   addPost: (post: Post) => void;
   registerForEvent: (eventId: string, userId: string) => void;
+  isSearchOpen: boolean;
+  openSearch: () => void;
+  closeSearch: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -26,6 +29,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [events, setEvents] = useState<Event[]>([...dummyEvents]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 'notif-1',
@@ -158,6 +162,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const openSearch = () => setIsSearchOpen(true);
+  const closeSearch = () => setIsSearchOpen(false);
+
   return (
     <AppContext.Provider
       value={{
@@ -176,6 +183,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         loginUser,
         addPost,
         registerForEvent,
+        isSearchOpen,
+        openSearch,
+        closeSearch,
       }}
     >
       {children}

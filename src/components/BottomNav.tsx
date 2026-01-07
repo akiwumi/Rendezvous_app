@@ -5,11 +5,12 @@ import './BottomNav.css'
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { unreadNotificationsCount } = useApp();
+  const { unreadNotificationsCount, openSearch } = useApp();
 
   const navItems = [
     { id: 'announcements', path: '/announcements', icon: '🏠', label: 'Home' },
     { id: 'events', path: '/events', icon: '📅', label: 'Events' },
+    { id: 'search', action: openSearch, icon: '🔍', label: 'Search' },
     { id: 'notifications', path: '/notifications', icon: '🔔', label: 'Notifications', badge: unreadNotificationsCount },
     { id: 'chat', path: '/chat', icon: '💬', label: 'Chat' },
     { id: 'profile', path: '/profile', icon: '👤', label: 'Profile' },
@@ -17,13 +18,21 @@ const BottomNav = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const handleClick = (item: typeof navItems[0]) => {
+    if (item.action) {
+      item.action();
+    } else if (item.path) {
+      navigate(item.path);
+    }
+  };
+
   return (
     <div className="bottom-nav">
       {navItems.map((item) => (
         <button
           key={item.id}
-          className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-          onClick={() => navigate(item.path)}
+          className={`nav-item ${item.path && isActive(item.path) ? 'active' : ''}`}
+          onClick={() => handleClick(item)}
           aria-label={item.label}
         >
           <div className="nav-icon-wrapper">
@@ -32,7 +41,7 @@ const BottomNav = () => {
               <span className="nav-badge">{item.badge > 9 ? '9+' : item.badge}</span>
             )}
           </div>
-          {isActive(item.path) && <div className="nav-indicator"></div>}
+          {item.path && isActive(item.path) && <div className="nav-indicator"></div>}
         </button>
       ))}
     </div>

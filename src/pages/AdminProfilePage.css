@@ -1,7 +1,7 @@
 .admin-profile-page {
   min-height: 100vh;
   background-color: var(--bg-primary);
-  padding-bottom: calc(var(--nav-height) + var(--spacing-xl));
+  padding-bottom: calc(var(--nav-height) + var(--search-bar-height) + var(--spacing-xl));
 }
 
 /* Hero Section */
@@ -97,11 +97,45 @@
   font-weight: var(--font-weight-bold);
 }
 
+.admin-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
 .admin-name {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
+  margin: 0;
+}
+
+.add-friend-btn {
+  background: var(--color-gold);
+  border: none;
+  border-radius: var(--radius-full);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.add-friend-btn:hover {
+  background: var(--color-gold-dark);
+  transform: scale(1.1);
+}
+
+.add-friend-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .admin-role {
@@ -225,7 +259,8 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  justify-content: center;
 }
 
 .admin-tabs::-webkit-scrollbar {
@@ -244,6 +279,9 @@
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
 .admin-tab-btn.active {
@@ -256,18 +294,20 @@
   color: var(--text-primary);
 }
 
-.admin-tab-btn-full {
-  width: 100%;
-  border-bottom: 2px solid var(--border-light);
-  border-top: 2px solid var(--border-light);
-  margin-top: var(--spacing-xs);
-  padding-top: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
+.admin-tab-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
-.admin-tab-btn-full.active {
-  border-top-color: var(--color-gold);
-  border-bottom-color: var(--color-gold);
+.friends-count {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.admin-tab-btn-full.active .friends-count {
+  color: var(--color-gold);
 }
 
 /* Tab Content */

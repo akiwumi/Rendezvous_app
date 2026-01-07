@@ -121,10 +121,17 @@ const ProfilePage = () => {
               </div>
             )}
           </div>
-          <h1 className="profile-name">
-            {profile.fullName}
-            {isAdmin && <span className="admin-badge">Admin</span>}
-          </h1>
+          <div className="profile-name-row">
+            <h1 className="profile-name">
+              {profile.fullName}
+              {isAdmin && <span className="admin-badge">Admin</span>}
+            </h1>
+            {!isAdmin && currentUser && currentUser.id !== profile.id && (
+              <button className="add-friend-btn" title="Add Friend">
+                <img src="/add.png" alt="Add Friend" className="add-friend-icon" />
+              </button>
+            )}
+          </div>
           {profile.address && (
             <p className="profile-location">📍 {profile.address}</p>
           )}
@@ -149,32 +156,38 @@ const ProfilePage = () => {
           <button
             className={`tab-button ${activeTab === 'about' ? 'active' : ''}`}
             onClick={() => setActiveTab('about')}
+            title="About"
           >
-            About
+            <img src="/info.png" alt="About" className="tab-icon" />
           </button>
           <button
             className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
             onClick={() => setActiveTab('friends')}
+            title={`Friends (${friends.length})`}
           >
-            Friends ({friends.length})
+            <img src="/friends.png" alt="Friends" className="tab-icon" />
+            <span className="friends-count">{friends.length}</span>
           </button>
           <button
             className={`tab-button ${activeTab === 'posts' ? 'active' : ''}`}
             onClick={() => setActiveTab('posts')}
+            title="Liked Posts"
           >
-            Liked Posts
+            <img src="/heart.png" alt="Liked Posts" className="tab-icon" />
           </button>
           <button
             className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
             onClick={() => setActiveTab('events')}
+            title="My Events"
           >
-            My Events
+            <img src="/calendar-check.png" alt="My Events" className="tab-icon" />
           </button>
           <button
             className={`tab-button ${activeTab === 'reminders' ? 'active' : ''}`}
             onClick={() => setActiveTab('reminders')}
+            title="Reminders"
           >
-            Reminders
+            <img src="/bell.png" alt="Reminders" className="tab-icon" />
           </button>
         </div>
 

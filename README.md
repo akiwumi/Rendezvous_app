@@ -11,6 +11,7 @@ An exclusive private social club mobile application built with React, TypeScript
 - **User Feed** - Facebook-like social feed for members to post and interact
 - **Events** - Event listings with calendar integration and RSVP functionality
 - **Search & Connect** - Find and connect with other members
+- **Search Bar** - Floating search modal accessible from bottom menu with magnifying glass icon. Includes advanced search options (Date, Location, Time) hidden under "Advanced Search" button
 - **Chat** - Real-time messaging with members and administrators
 - **Profile** - User profiles with tabs for About, Friends, Liked Posts, Events, and Reminders. Dynamic routing for viewing any user's profile (`/profile/:userId`)
 - **Admin Profile** - Complete profile page for Pernilla Ewarldsson with bio, achievements, hosted events, posts, and gallery
@@ -121,6 +122,14 @@ The admin profile for Pernilla Ewarldsson is automatically available. All new me
 - **Friends List**: View friends in a Facebook-style grid layout with clickable profile cards
 - **Dynamic Routing**: User profiles support dynamic URLs (`/profile/:userId`) for easy sharing and direct access
 - **Admin Profile Links**: Clicking on admin profile images navigates to the dedicated admin profile page (`/admin-profile`)
+- **Search Bar**: Floating search modal accessible from the bottom navigation menu (magnifying glass icon). The search bar:
+  - Appears as a centered floating modal above page content
+  - Always fully visible when activated
+  - Includes basic search input and submit button
+  - Advanced search options (Date, Location, Time filters) are hidden under an "Advanced Search" toggle button
+  - Advanced options expand smoothly when activated
+  - Modal can be closed via close button or backdrop click
+  - Body scroll is locked when search is open to prevent positioning issues
 
 ## Public Assets
 

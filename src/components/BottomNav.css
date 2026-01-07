@@ -12,7 +12,8 @@
   justify-content: space-around;
   align-items: center;
   padding-bottom: env(safe-area-inset-bottom);
-  z-index: 10;
+  z-index: 101;
+  margin: 0;
 }
 
 .nav-item {

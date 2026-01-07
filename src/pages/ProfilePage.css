@@ -1,7 +1,7 @@
 .profile-page {
   min-height: 100vh;
   background-color: var(--bg-primary);
-  padding-bottom: calc(var(--nav-height) + var(--spacing-md));
+  padding-bottom: calc(var(--nav-height) + var(--search-bar-height) + var(--spacing-md));
 }
 
 /* Profile Hero */
@@ -71,15 +71,23 @@
   font-weight: var(--font-weight-bold);
 }
 
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
 .profile-name {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
+  margin: 0;
 }
 
 .admin-badge {
@@ -135,6 +143,7 @@
   border-bottom: 2px solid var(--border-light);
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  justify-content: center;
 }
 
 .profile-tabs::-webkit-scrollbar {
@@ -167,6 +176,55 @@
 
 .tab-button:hover {
   color: var(--text-primary);
+}
+
+.tab-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.friends-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-left: var(--spacing-xs);
+}
+
+.tab-button.active .friends-count {
+  color: var(--color-gold);
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.add-friend-btn {
+  background: var(--color-gold);
+  border: none;
+  border-radius: var(--radius-full);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.add-friend-btn:hover {
+  background: var(--color-gold-dark);
+  transform: scale(1.1);
+}
+
+.add-friend-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 /* Tab Content */
