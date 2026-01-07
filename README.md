@@ -133,6 +133,8 @@ The admin profile for Pernilla Ewarldsson is automatically available. All new me
   - Body scroll is locked when search is open to prevent positioning issues
 - **Pull-to-Refresh**: Facebook-style pull-to-refresh functionality on main content pages. Features:
   - Pull down from the top of the page to refresh content
+  - Custom refresh logo (`refreshlogo.jpg`) revealed progressively as you pull down
+  - Logo appears above the header bar and is revealed from bottom to top
   - Visual feedback with animated arrow that rotates as you pull
   - Text indicators: "Pull to refresh" → "Release to refresh" → "Refreshing..."
   - Loading spinner appears during refresh
@@ -149,6 +151,7 @@ Place the following images in the `public/` directory:
 - `mallorca-beach.jpg` - Admin profile hero image (beach scene)
 - `paddle.jpg` - Paddle Tennis Tournament announcement image
 - `safari.jpg` - Safari Adventure to Kenya announcement image
+- `refreshlogo.jpg` - Refresh logo revealed during pull-to-refresh gesture
 
 ## User Profiles
 

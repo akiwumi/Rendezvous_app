@@ -116,7 +116,14 @@ const PullToRefresh = ({
     >
       <div 
         className={`pull-to-refresh-indicator ${shouldShowIndicator ? 'visible' : ''}`}
-        style={{ opacity: shouldShowIndicator ? 1 : 0 }}
+        style={{ 
+          opacity: shouldShowIndicator ? 1 : 0,
+          backgroundImage: `url('/refreshlogo.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          clipPath: `inset(0 0 ${100 - progress}% 0)`,
+        }}
       >
         <div className="pull-to-refresh-spinner-container">
           {isRefreshing ? (
