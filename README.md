@@ -151,7 +151,8 @@ Place the following images in the `public/` directory:
 - `mallorca-beach.jpg` - Admin profile hero image (beach scene)
 - `paddle.jpg` - Paddle Tennis Tournament announcement image
 - `safari.jpg` - Safari Adventure to Kenya announcement image
-- `refreshlogo.jpg` - Refresh logo revealed during pull-to-refresh gesture
+- `refreshlogo.jpg` - Refresh logo revealed during pull-to-refresh gesture (also used as iOS home screen icon)
+- `manifest.json` - Web app manifest for PWA support and home screen installation
 
 ## User Profiles
 
@@ -185,6 +186,22 @@ All admin-created content (posts, announcements, and events) automatically displ
 ## Mobile-First Design
 
 The app is optimized for mobile devices with a maximum width of 414px (iPhone Plus size).
+
+## iOS Home Screen Icon
+
+The app includes full iOS home screen icon support:
+- Uses `refreshlogo.jpg` as the home screen icon
+- Configured for all iOS device sizes (iPhone and iPad)
+- Supports "Add to Home Screen" functionality
+- App launches in standalone mode (no browser UI)
+- Theme color matches app design (#556B2F)
+- Portrait orientation locked for optimal mobile experience
+
+Users can add the app to their iPhone home screen by:
+1. Opening the app in Safari
+2. Tapping the Share button
+3. Selecting "Add to Home Screen"
+4. The app will appear with the refresh logo icon
 
 ## Technologies
 
