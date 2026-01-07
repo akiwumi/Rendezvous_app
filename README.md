@@ -123,7 +123,16 @@ The admin profile for Pernilla Ewarldsson is automatically available. All new me
 - **Friends List**: View friends in a Facebook-style grid layout with clickable profile cards
 - **Dynamic Routing**: User profiles support dynamic URLs (`/profile/:userId`) for easy sharing and direct access
 - **Admin Profile Links**: Clicking on admin profile images navigates to the dedicated admin profile page (`/admin-profile`)
-- **Search Bar**: Floating search modal accessible from the bottom navigation menu (magnifying glass icon). The search bar:
+- **Bottom Navigation**: Fixed bottom navigation bar with PNG icon images:
+  - **Home** (`home.png`) - Navigate to announcements page
+  - **Events** (`calendar.png`) - View upcoming events
+  - **Search** (`search.png`) - Open search modal
+  - **Notifications** (`notification.png`) - View notifications with unread badge
+  - **Chat** (`chat.png`) - Access messaging interface
+  - **Profile** (`user.png`) - View user profile
+  - Icons have opacity states: inactive (60%), active (100%), hover (80%)
+  - Active page indicator shown below selected icon
+- **Search Bar**: Floating search modal accessible from the bottom navigation menu (search icon). The search bar:
   - Appears as a centered floating modal above page content
   - Always fully visible when activated
   - Includes basic search input and submit button
@@ -153,6 +162,13 @@ Place the following images in the `public/` directory:
 - `safari.jpg` - Safari Adventure to Kenya announcement image
 - `refreshlogo.jpg` - Refresh logo revealed during pull-to-refresh gesture (also used as iOS home screen icon)
 - `manifest.json` - Web app manifest for PWA support and home screen installation
+- `appicon.png` - iOS home screen app icon
+- `home.png` - Bottom navigation home icon
+- `calendar.png` - Bottom navigation events/calendar icon
+- `search.png` - Bottom navigation search icon
+- `notification.png` - Bottom navigation notifications icon
+- `chat.png` - Bottom navigation chat icon
+- `user.png` - Bottom navigation profile/user icon
 
 ## User Profiles
 

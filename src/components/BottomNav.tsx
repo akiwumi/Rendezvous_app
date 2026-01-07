@@ -8,12 +8,12 @@ const BottomNav = () => {
   const { unreadNotificationsCount, openSearch } = useApp();
 
   const navItems = [
-    { id: 'announcements', path: '/announcements', icon: '🏠', label: 'Home' },
-    { id: 'events', path: '/events', icon: '📅', label: 'Events' },
-    { id: 'search', action: openSearch, icon: '🔍', label: 'Search' },
-    { id: 'notifications', path: '/notifications', icon: '🔔', label: 'Notifications', badge: unreadNotificationsCount },
-    { id: 'chat', path: '/chat', icon: '💬', label: 'Chat' },
-    { id: 'profile', path: '/profile', icon: '👤', label: 'Profile' },
+    { id: 'announcements', path: '/announcements', icon: '/home.png', label: 'Home' },
+    { id: 'events', path: '/events', icon: '/calendar.png', label: 'Events' },
+    { id: 'search', action: openSearch, icon: '/search.png', label: 'Search' },
+    { id: 'notifications', path: '/notifications', icon: '/notification.png', label: 'Notifications', badge: unreadNotificationsCount },
+    { id: 'chat', path: '/chat', icon: '/chat.png', label: 'Chat' },
+    { id: 'profile', path: '/profile', icon: '/user.png', label: 'Profile' },
   ]
 
   const isActive = (path: string) => location.pathname === path;
@@ -36,7 +36,11 @@ const BottomNav = () => {
           aria-label={item.label}
         >
           <div className="nav-icon-wrapper">
-            <div className="nav-icon">{item.icon}</div>
+            <img 
+              src={item.icon} 
+              alt={item.label}
+              className="nav-icon"
+            />
             {item.badge && item.badge > 0 && (
               <span className="nav-badge">{item.badge > 9 ? '9+' : item.badge}</span>
             )}

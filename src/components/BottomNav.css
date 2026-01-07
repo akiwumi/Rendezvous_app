@@ -42,7 +42,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-lg);
+  object-fit: contain;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.nav-item.active .nav-icon {
+  opacity: 1;
 }
 
 .nav-badge {
@@ -71,7 +77,7 @@
 }
 
 .nav-item:hover .nav-icon {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .nav-item:active .nav-icon {
