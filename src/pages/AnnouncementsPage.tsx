@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Announcement } from '../types';
-import { announcementService } from '../services/supabaseService';
+import { announcementService } from '../services/localDataService';
 import AppHeader from '../components/AppHeader';
 import PullToRefresh from '../components/PullToRefresh';
 import './AnnouncementsPage.css';

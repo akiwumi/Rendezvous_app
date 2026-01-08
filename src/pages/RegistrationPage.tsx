@@ -112,7 +112,7 @@ const RegistrationPage = () => {
 
     if (success) {
       // Redirect to profile page after successful registration
-      // The user is automatically authenticated via Supabase Auth
+      // The user is automatically authenticated via local storage
       navigate('/profile');
     } else {
       setErrors({ 

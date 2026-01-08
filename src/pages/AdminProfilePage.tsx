@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminProfile } from '../data/dummyData';
 import { useApp } from '../context/AppContext';
-import { userService, postService, eventService, announcementService, invitationService } from '../services/supabaseService';
+import { userService, postService, eventService, announcementService, invitationService } from '../services/localDataService';
 import { User } from '../types';
 import CreatePostModal from '../components/CreatePostModal';
 import PostInteractions from '../components/PostInteractions';
@@ -49,7 +49,7 @@ const AdminProfilePage = () => {
         }
 
         if (!actualAdminUser) {
-          console.error('Admin user not found. Please ensure Eugene Akiwumi is set up in Supabase.');
+          console.error('Admin user not found. Please ensure Eugene Akiwumi is set up in local storage.');
           return;
         }
 
@@ -126,12 +126,11 @@ const AdminProfilePage = () => {
 
       const maxUses = newCodeOptions.maxUses ? parseInt(newCodeOptions.maxUses) : undefined;
 
-      const code = await invitationService.generateInvitationCode({
-        code: newCodeOptions.code || undefined,
-        maxUses,
-        expiresAt,
-        active: true,
-      });
+      const code = await invitationService.generateInvitationCode(
+        maxUses || 100,
+        expiresAt || null,
+        newCodeOptions.code || undefined
+      );
 
       // Reload codes
       const codes = await invitationService.getAllInvitationCodes();
@@ -152,7 +151,7 @@ const AdminProfilePage = () => {
 
   const handleToggleCodeStatus = async (code: string, currentStatus: boolean) => {
     try {
-      await invitationService.updateInvitationCode(code, { active: !currentStatus });
+      await invitationService.updateInvitationCode(code, { isActive: !currentStatus });
       const codes = await invitationService.getAllInvitationCodes();
       setInvitationCodes(codes);
     } catch (error) {
@@ -241,9 +240,22 @@ const AdminProfilePage = () => {
           
           <div className="admin-name-row">
             <h1 className="admin-name">{adminUser.fullName}</h1>
-            <button className="add-friend-btn" title="Add Friend">
-              <img src="/add.png" alt="Add Friend" className="add-friend-icon" />
-            </button>
+            <div className="admin-profile-actions">
+              <button 
+                className="admin-action-btn console-btn"
+                onClick={() => navigate('/admin-console')}
+                title="Admin Console"
+              >
+                ⚙️ Console
+              </button>
+              <button 
+                className="admin-action-btn feed-btn"
+                onClick={() => navigate('/feed')}
+                title="View Newsfeed"
+              >
+                📰 Feed
+              </button>
+            </div>
           </div>
           <p className="admin-role">{adminProfile.role}</p>
           <p className="admin-location">📍 {adminUser.address}</p>
@@ -298,10 +310,27 @@ const AdminProfilePage = () => {
             )}
           </div>
 
-          {/* Contact Button */}
-          <button className="contact-admin-btn">
-            💬 Message Eugene
-          </button>
+          {/* Action Buttons */}
+          <div className="admin-profile-action-buttons">
+            <button 
+              className="create-post-button"
+              onClick={() => setShowCreatePost(true)}
+            >
+              ➕ Create Post
+            </button>
+            <button 
+              className="admin-console-button"
+              onClick={() => navigate('/admin-console')}
+            >
+              ⚙️ Admin Console
+            </button>
+            <button 
+              className="feed-button"
+              onClick={() => navigate('/feed')}
+            >
+              📰 View Feed
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -850,7 +879,7 @@ const AdminProfilePage = () => {
           onClose={() => setShowCreatePost(false)}
           onSubmit={async (postData) => {
             try {
-              // Create post in Supabase
+              // Create post in local storage
               await postService.createPost({
                 ...postData,
                 id: `post-${Date.now()}`,
@@ -875,9 +904,8 @@ const AdminProfilePage = () => {
                   title: postData.headline || 'New Announcement',
                   content: postData.content || '',
                   image: postData.image,
-                  date: postData.eventDate.toISOString(),
+                  date: postData.eventDate instanceof Date ? postData.eventDate : new Date(postData.eventDate),
                   type: 'event',
-                  created_by: currentUser?.id || '',
                 });
               }
               

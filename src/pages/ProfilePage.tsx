@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-// Admin user will be loaded from database
-import { userService, postService } from '../services/supabaseService';
+import { userService, postService } from '../services/localDataService';
+import { User } from '../types';
 import AppHeader from '../components/AppHeader';
 import './ProfilePage.css';
 
@@ -62,16 +62,42 @@ const ProfilePage = () => {
 
         // Load profile user
         if (userId) {
-          // Check if it's admin email or admin-1 reference
-          if (userId === 'admin-1' || userId === foundAdmin?.id) {
+          // Check if it's admin by ID or email
+          const isAdminId = userId === 'admin-1' || userId === foundAdmin?.id || userId === adminUser?.id;
+          if (isAdminId && (foundAdmin || adminUser)) {
             setProfileUser(foundAdmin || adminUser);
           } else {
             try {
               const user = await userService.getUser(userId);
-              setProfileUser(user);
+              if (user) {
+                // Double check if this user is admin
+                if (user.isAdmin && user.email === 'akiwumi@gmail.com') {
+                  navigate('/admin-profile');
+                  return;
+                }
+                setProfileUser(user);
+              } else {
+                // User not found, try to find by email
+                const userByEmail = users.find(u => u.email === userId);
+                if (userByEmail) {
+                  if (userByEmail.isAdmin) {
+                    navigate('/admin-profile');
+                    return;
+                  }
+                  setProfileUser(userByEmail);
+                } else {
+                  setProfileUser(currentUser || foundAdmin || null);
+                }
+              }
             } catch (error) {
               console.error('Error loading user:', error);
-              setProfileUser(currentUser || foundAdmin || null);
+              // Try to find user in the loaded users list
+              const userInList = users.find(u => u.id === userId);
+              if (userInList) {
+                setProfileUser(userInList);
+              } else {
+                setProfileUser(currentUser || foundAdmin || null);
+              }
             }
           }
         } else {
@@ -292,11 +318,29 @@ const ProfilePage = () => {
               {profile.fullName}
               {isAdmin && <span className="admin-badge">Admin</span>}
             </h1>
-            {!isAdmin && currentUser && currentUser.id !== profile.id && (
-              <button className="add-friend-btn" title="Add Friend">
-                <img src="/add.png" alt="Add Friend" className="add-friend-icon" />
+            <div className="profile-actions">
+              {isAdmin && currentUser?.isAdmin && (
+                <button 
+                  className="profile-action-btn admin-console-btn"
+                  onClick={() => navigate('/admin-console')}
+                  title="Admin Console"
+                >
+                  ⚙️ Console
+                </button>
+              )}
+              <button 
+                className="profile-action-btn feed-btn"
+                onClick={() => navigate('/feed')}
+                title="View Newsfeed"
+              >
+                📰 Feed
               </button>
-            )}
+              {!isAdmin && currentUser && currentUser.id !== profile.id && (
+                <button className="add-friend-btn" title="Add Friend">
+                  <img src="/add.png" alt="Add Friend" className="add-friend-icon" />
+                </button>
+              )}
+            </div>
           </div>
           {profile.address && (
             <p className="profile-location">📍 {profile.address}</p>

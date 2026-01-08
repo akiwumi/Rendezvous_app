@@ -13,11 +13,12 @@ import ChatPage from './pages/ChatPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminProfilePage from './pages/AdminProfilePage';
+import AdminConsolePage from './pages/AdminConsolePage';
 import './App.css';
 
 const AppContent = () => {
   const location = useLocation();
-  const hideNav = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register';
+  const hideNav = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/admin-console';
 
   return (
     <>
@@ -34,6 +35,7 @@ const AppContent = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:userId" element={<ProfilePage />} />
         <Route path="/admin-profile" element={<AdminProfilePage />} />
+        <Route path="/admin-console" element={<AdminConsolePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!hideNav && <SearchBar />}

@@ -20,7 +20,7 @@ export const adminUser: User = {
   registeredEvents: ['evt-1', 'evt-2', 'evt-3', 'evt-4', 'evt-5', 'evt-6', 'evt-7', 'evt-8'],
 };
 
-// Dummy Users - DEPRECATED: Users are now loaded from Supabase
+// Dummy Users - Used as initial data for local storage
 export const dummyUsers: User[] = [
   {
     id: 'user-1',

@@ -28,23 +28,36 @@
 
 .post-actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
+}
+
+.post-card .post-actions {
+  flex-direction: row;
+  justify-content: flex-start;
 }
 
 .action-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--spacing-xs);
   background: none;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   padding: var(--spacing-xs);
   transition: var(--transition-fast);
+  min-width: 50px;
+}
+
+.post-card .action-btn {
+  flex-direction: row;
+  min-width: auto;
 }
 
 .action-btn:hover {
@@ -61,11 +74,12 @@
 }
 
 .action-icon {
-  width: var(--icon-engagement);
-  height: var(--icon-engagement);
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: var(--font-size-xl);
 }
 
 .comments-section {

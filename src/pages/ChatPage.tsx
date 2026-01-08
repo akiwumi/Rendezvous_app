@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { userService } from '../services/supabaseService';
+import { userService } from '../services/localDataService';
 import { Message, User } from '../types';
 import AppHeader from '../components/AppHeader';
 import './ChatPage.css';

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Post, Event, Notification, Announcement } from '../types';
-// Admin user will be loaded from database
-import { authService, userService, postService, eventService, notificationService, invitationService, announcementService, adminService } from '../services/supabaseService';
+// Local data service replaces Supabase
+import { authService, userService, postService, eventService, notificationService, invitationService, announcementService, adminService, getLocalData } from '../services/localDataService';
 
 interface AppContextType {
   currentUser: User | null;
@@ -51,7 +51,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Check for existing auth session
         const user = await authService.getCurrentUser();
         if (user) {
-        // Load user data from Supabase
+        // Load user data
         try {
           const userData = await userService.getUser(user.id);
           if (userData) {
@@ -60,48 +60,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         } catch (error) {
           console.error('Error loading user data:', error);
         }
-        }
-
-        // Load posts from Supabase
-        try {
-          const supabasePosts = await postService.getPosts();
-          if (supabasePosts && supabasePosts.length > 0) {
-            setPosts(supabasePosts);
-          }
-        } catch (error) {
-          console.log('Using local posts data');
-        }
-
-        // Load events from Supabase
-        try {
-          const supabaseEvents = await eventService.getEvents();
-          if (supabaseEvents && supabaseEvents.length > 0) {
-            setEvents(supabaseEvents);
-          }
-        } catch (error) {
-          console.log('Using local events data');
-        }
-
-        // Load announcements from Supabase
-        try {
-          const supabaseAnnouncements = await announcementService.getAnnouncements();
-          if (supabaseAnnouncements && supabaseAnnouncements.length > 0) {
-            setAnnouncements(supabaseAnnouncements);
-          }
-        } catch (error) {
-          console.log('Using local announcements data');
-        }
-
-        // Load notifications if user is logged in
-        if (user) {
-          try {
-            const supabaseNotifications = await notificationService.getNotifications(user.id);
-            if (supabaseNotifications && supabaseNotifications.length > 0) {
-              setNotifications(supabaseNotifications);
-            }
-          } catch (error) {
-            console.log('Using local notifications data');
-          }
         }
       } catch (error) {
         console.error('Error initializing app:', error);
@@ -142,7 +100,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const registerUser = async (userData: Partial<User>, invitationCode: string): Promise<boolean> => {
     try {
-      // Validate invitation code with Supabase
+      // Validate invitation code
       const isValidCode = await invitationService.validateInvitationCode(invitationCode);
       if (!isValidCode) {
         return false;
@@ -169,12 +127,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         );
       } catch (authError: any) {
         console.error('Auth error:', authError);
-        // If Supabase auth fails, registration fails
-        console.error('Supabase authentication failed');
+        // If auth fails, registration fails
+        console.error('Authentication failed');
         return false;
       }
 
-      // Create user profile in Supabase
+      // Create user profile
       if (authData?.user) {
         const newUser: User = {
           id: authData.user.id,
@@ -191,6 +149,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           const createdUser = await userService.createUser(newUser);
           // Set current user immediately so profile page can access it
           setCurrentUser(createdUser);
+          // Save to localStorage
+          localStorage.setItem('rendezvous_current_user', createdUser.id);
           
           // Create welcome notification
           try {
@@ -206,8 +166,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           }
         } catch (error) {
           console.error('Error creating user profile:', error);
-          // Still set user locally even if DB save fails
+          // Still set user locally even if save fails
           setCurrentUser(newUser);
+          localStorage.setItem('rendezvous_current_user', newUser.id);
         }
         return true;
       }
@@ -224,19 +185,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.log('=== LOGIN ATTEMPT ===');
       console.log('Email:', email);
       
-      // Authenticate with Supabase
+      // Authenticate with local service
       const authData = await authService.signIn(email, password);
       
       if (authData?.user) {
         const authUser = authData.user;
         console.log('✓ Auth successful for user:', authUser.email, 'ID:', authUser.id);
         
-        // Try to load user data from Supabase
+        // Try to load user data
         let userData = await userService.getUser(authUser.id);
         
         // If user profile doesn't exist, create it
         if (!userData) {
-          console.log('⚠ User profile not found in database, creating new profile...');
+          console.log('⚠ User profile not found, creating new profile...');
           
           // Get user metadata from auth
           const userMetadata = authUser.user_metadata || {};
@@ -279,7 +240,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             console.log('✓ User profile created successfully:', userData.email, 'Admin:', userData.isAdmin);
           } catch (createError: any) {
             console.error('✗ Error creating user profile:', createError);
-            throw new Error(`Failed to create user profile: ${createError.message}. Please check Supabase RLS policies and database permissions.`);
+            throw new Error(`Failed to create user profile: ${createError.message}`);
           }
         } else {
           console.log('✓ User profile loaded successfully:', userData.email, 'Admin:', userData.isAdmin);
@@ -287,11 +248,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         
         if (userData) {
           setCurrentUser(userData);
+          // Save current user to localStorage
+          localStorage.setItem('rendezvous_current_user', userData.id);
           console.log('✓ Current user set in context');
           
           // Load user notifications
           try {
-            const userNotifications = await notificationService.getNotifications(authData.user.id);
+            const userNotifications = await notificationService.getNotifications(authUser.id);
             if (userNotifications) {
               setNotifications(userNotifications);
             }
@@ -314,14 +277,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error('=== LOGIN ERROR ===');
       console.error('Error details:', error);
       
-      // Check for specific Supabase auth errors and provide helpful messages
+      // Check for specific auth errors
       if (error?.message?.includes('Invalid login credentials') || 
-          error?.message?.includes('Invalid') ||
-          error?.status === 400) {
-        throw new Error('Invalid email or password. Please verify:\n- Email: akiwumi@gmail.com\n- Password: 1234\n\nIf this is correct, the password in Supabase Auth may be different. Please reset it in Supabase Dashboard → Authentication → Users.');
-      } else if (error?.message?.includes('Email not confirmed') || 
-                 error?.message?.includes('not confirmed')) {
-        throw new Error('Email not confirmed. Please go to Supabase Dashboard → Authentication → Users → Find your user → Click "Confirm" button.');
+          error?.message?.includes('Invalid')) {
+        throw new Error('Invalid email or password. Please verify:\n- Email: akiwumi@gmail.com\n- Password: 1234');
       } else if (error?.message?.includes('User profile not found') || 
                  error?.message?.includes('Failed to create user profile')) {
         throw error; // Re-throw custom message
@@ -360,15 +319,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addPost = async (post: Post) => {
     try {
-      // Save to Supabase
+      // Save to local storage
       const savedPost = await postService.createPost(post);
-      
-      if (savedPost) {
-        setPosts([savedPost, ...posts]);
-      } else {
-        // Fallback to local state
-        setPosts([post, ...posts]);
-      }
+      setPosts([savedPost, ...posts]);
       
       // Create notification for new post
       if (currentUser && post.authorId !== currentUser.id) {
@@ -384,7 +337,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error('Error adding post:', error);
-      // Fallback to local state
       setPosts([post, ...posts]);
     }
   };
@@ -398,15 +350,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
     
     try {
-      // Save to Supabase if user is logged in
+      // Save to local storage if user is logged in
       if (currentUser) {
         await notificationService.createNotification({
           ...notification,
           userId: currentUser.id,
         });
+        setNotifications([...notifications, newNotification]);
       }
     } catch (error) {
       console.error('Error saving notification:', error);
+      setNotifications([...notifications, newNotification]);
     }
     
     setNotifications([newNotification, ...notifications]);
@@ -414,7 +368,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const markNotificationAsRead = async (notificationId: string) => {
     try {
-      await notificationService.markAsRead(notificationId);
+      await notificationService.markNotificationAsRead(notificationId);
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -426,7 +380,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const markAllNotificationsAsRead = async () => {
     if (currentUser) {
       try {
-        await notificationService.markAllAsRead(currentUser.id);
+        await notificationService.markAllNotificationsAsRead(currentUser.id);
       } catch (error) {
         console.error('Error marking all notifications as read:', error);
       }
@@ -438,10 +392,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const registerForEvent = async (eventId: string, userId: string) => {
     try {
-      // Register in Supabase
+      // Register for event
       await eventService.registerForEvent(eventId, userId);
       
-      // Reload event with updated attendees from database
+      // Reload event with updated attendees
       const updatedEvent = await eventService.getEvent(eventId);
       
       // Update user's registered events array
@@ -460,27 +414,32 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Update local state
-      setEvents(events.map(event => {
-        if (event.id === eventId) {
-          // Create notification for event registration
-          if (currentUser) {
-            addNotification({
-              type: 'event',
-              title: 'Event Registration',
-              message: `You registered for ${event.title}`,
-              relatedItemId: eventId,
-            });
+      if (updatedEvent) {
+        setEvents(events.map(event => {
+          if (event.id === eventId) {
+            // Create notification for event registration
+            if (currentUser) {
+              addNotification({
+                type: 'event',
+                title: 'Event Registration',
+                message: `You registered for ${updatedEvent.title}`,
+                relatedItemId: eventId,
+              });
+            }
+            return updatedEvent;
           }
-          return updatedEvent;
-        }
-        return event;
-      }));
+          return event;
+        }));
+      }
     } catch (error) {
       console.error('Error registering for event:', error);
       // Fallback to local state update
       setEvents(events.map(event => {
-        if (event.id === eventId && !event.attendees.includes(userId)) {
-          return { ...event, attendees: [...event.attendees, userId] };
+        if (event.id === eventId) {
+          const attendees = event.attendees || [];
+          if (!attendees.includes(userId)) {
+            return { ...event, attendees: [...attendees, userId] };
+          }
         }
         return event;
       }));

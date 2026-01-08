@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Event } from '../types';
-import { eventService } from '../services/supabaseService';
+import { eventService } from '../services/localDataService';
 import AppHeader from '../components/AppHeader';
 import PullToRefresh from '../components/PullToRefresh';
 import './EventsPage.css';

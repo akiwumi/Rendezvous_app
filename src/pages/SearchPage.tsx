@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { userService } from '../services/supabaseService';
+import { userService } from '../services/localDataService';
 import { User } from '../types';
 import AppHeader from '../components/AppHeader';
 import './SearchPage.css';

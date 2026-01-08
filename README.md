@@ -5,7 +5,7 @@ An exclusive private social club mobile application built with React, TypeScript
 ## Features
 
 - **Splash Screen** - Elegant welcome screen with branding and compact side-by-side login/register buttons positioned lower on the page
-- **Login Page** - User authentication with Supabase Auth
+- **Login Page** - User authentication with local storage
 - **Announcements** - Main page with admin announcements (parties, events, exhibitions, tournaments, trips)
 - **Registration** - Member registration with invitation code validation
 - **User Feed** - Facebook-like social feed for members to post and interact
@@ -16,13 +16,13 @@ An exclusive private social club mobile application built with React, TypeScript
 - **Profile** - User profiles with tabs for About, Friends, Liked Posts, Events, and Reminders. Dynamic routing for viewing any user's profile (`/profile/:userId`)
 - **Admin Profile** - Complete admin profile page for Eugene Akiwumi with bio, achievements, hosted events, posts, gallery, and full admin tools
 - **Friends System** - Facebook-style friends list with profile images, clickable cards, and navigation to friend profiles
-- **User Profiles** - User profiles with personalized biographies and full profile information (loaded from Supabase)
+- **User Profiles** - User profiles with personalized biographies and full profile information (stored locally)
 - **Notifications** - Notification system for posts, events, announcements, and updates
 - **Watermarks** - Automatic logo watermark on all admin-created content (posts, announcements, events)
 - **Pull-to-Refresh** - Facebook-like pull-to-refresh functionality on main content pages (Feed, Announcements, Events, Notifications)
-- **Supabase Integration** - Full backend integration with Supabase for authentication, database, and real-time features
-- **Live Statistics** - Dynamic stats on admin profile (events hosted, members, years active, countries) calculated from actual database data
-- **Data-Driven** - All content (posts, events, announcements, users) is loaded from Supabase database, no dummy data in codebase
+- **Local Data Storage** - All data stored locally using localStorage for persistence across sessions
+- **Live Statistics** - Dynamic stats on admin profile (events hosted, members, years active, countries) calculated from local data
+- **Data-Driven** - All content (posts, events, announcements, users) is managed locally with localStorage persistence
 
 ## Design System
 
@@ -65,7 +65,7 @@ src/
 ├── context/         # React context for state management
 ├── types/           # TypeScript type definitions
 ├── data/            # Static data (admin profile info, design system)
-├── services/        # Supabase service layer
+├── services/        # Local data service layer
 ├── utils/           # Utility functions (database helpers)
 └── design-system.css # Design system CSS variables
 ```
@@ -86,7 +86,7 @@ src/
 
 ## Authentication
 
-The app uses Supabase Authentication for all user authentication.
+The app uses local storage for authentication and data persistence.
 
 ### Login
 The landing page includes **Login** and **Register** buttons. Users must choose an option to proceed.
@@ -96,21 +96,21 @@ The landing page includes **Login** and **Register** buttons. Users must choose 
   - Email: `akiwumi@gmail.com`
   - Password: `1234`
 - **Sokina Bobo:**
-  - Email: `sokina.bobo@example.com` (or as configured in Supabase)
-  - Password: `demo123` (or as configured in Supabase)
+  - Email: `sokina.bobo@example.com`
+  - Password: `demo123`
 
-**Supabase Authentication:**
+**Local Authentication:**
 - All users register and login with email/password
-- Sessions are managed by Supabase with persistent login
+- Sessions are managed with localStorage for persistent login
 - Auto-login on app reload if session exists
 - Admin users have full access to all admin tools
 
 ### Registration
 **Registration Process:**
 1. User provides email, password, and profile information
-2. Invitation code is validated against Supabase database
-3. User account is created in Supabase Auth
-4. User profile is saved to Supabase database
+2. Invitation code is validated against local storage
+3. User account is created in local storage
+4. User profile is saved to localStorage
 5. User is automatically logged in
 
 **Required fields:**
@@ -144,8 +144,8 @@ A complete admin profile page has been created for Eugene Akiwumi (`/admin-profi
 - **Tabs**: About (bio, achievements, interests, languages), Friends, Events, Posts, Gallery
 - **Friends Section**: Facebook-style grid displaying all connected members with clickable profile cards (placed on its own line in the tabs)
 - **Achievements**: List of notable accomplishments
-- **Events Section**: All hosted events with images and details (loaded from Supabase)
-- **Posts Section**: All admin posts (loaded from Supabase)
+- **Events Section**: All hosted events with images and details (stored locally)
+- **Posts Section**: All admin posts (stored locally)
 - **Gallery**: Photo gallery of past events
 
 The admin profile for Eugene Akiwumi is automatically available. All members are visible in the Friends tab. The Friends tab displays all members from the database and allows navigation to each member's profile.
@@ -212,7 +212,7 @@ Place the following images in the `public/` directory:
 
 ## User Profiles
 
-User profiles are loaded from the Supabase database. The seed data includes six sample user profiles with complete information:
+User profiles are stored locally. The initial data includes six sample user profiles with complete information:
 - **Marcus von Habsburg** - Investment banker and wine connoisseur
 - **Isabella Rossi** - Italian fashion designer and art enthusiast
 - **James Chen** - Tech entrepreneur and photography enthusiast
@@ -265,53 +265,28 @@ Users can add the app to their iPhone home screen by:
 - TypeScript
 - Vite
 - React Router DOM
-- Supabase - Backend as a Service (Authentication, Database, Storage)
+- localStorage - Browser-based data persistence
 - CSS Variables for theming
 
-## Supabase Integration
+## Local Data Storage
 
-The app is fully integrated with Supabase for backend functionality:
+The app uses browser localStorage for all data persistence:
 
 ### Features
-- **Authentication**: User registration and login with Supabase Auth
-- **Database**: PostgreSQL database with Row Level Security (RLS)
-- **Real-time**: Ready for real-time subscriptions
-- **Storage**: Ready for file uploads (images, documents)
-
-### Setup
-1. **Environment Variables**: Create a `.env` file with your Supabase credentials (see `EUGENE_SETUP_INSTRUCTIONS.md`)
-2. **Database Schema**: Run the SQL scripts in the `supabase/` directory in your Supabase SQL Editor
-3. **Create Admin User**: 
-   - Create auth user in Supabase Dashboard: Authentication > Users > Add User
-   - Email: `akiwumi@gmail.com`, Password: `1234`, Auto Confirm: Yes
-   - Copy the UUID and run `supabase/QUICK_SETUP_EUGENE.sql` with your UUID
-   - See `EUGENE_SETUP_INSTRUCTIONS.md` for detailed steps
-4. **Authentication**: Configure email authentication in Supabase Dashboard
-5. **Seed Demo Users** (optional): Run `supabase/SUPABASE_DEMO_USERS.sql` to create 6 demo users for testing
-
-### Current Configuration
-- **Project URL**: https://qsqpoogatwwtydbrfans.supabase.co
-- **Project ID**: qsqpoogatwwtydbrfans
-- **Admin Email**: akiwumi@gmail.com
-- **Admin UUID**: 055f4406-9903-467d-9b28-8701765201df
-- **Admin Password**: 1234
-- Credentials are configured in the codebase (can be moved to `.env` for production)
+- **Authentication**: User registration and login stored locally
+- **Data Persistence**: All data (users, posts, events, announcements) persists across browser sessions
+- **No Backend Required**: Works completely offline with no external dependencies
+- **Automatic Initialization**: Loads with sample data on first run
 
 ### Data Management
-- **All data is loaded from Supabase**: Posts, events, announcements, users, and notifications are fetched from the database
-- **No dummy data in codebase**: All dummy data has been removed and replaced with database queries
-- **Live statistics**: Admin profile stats are calculated dynamically from actual database data
-- **Real-time ready**: The app is structured to support Supabase real-time subscriptions
+- **All data is stored locally**: Posts, events, announcements, users, and notifications are stored in localStorage
+- **Initial data**: Sample users, posts, events, and announcements are included in the codebase
+- **Live statistics**: Admin profile stats are calculated dynamically from local data
+- **Session persistence**: User sessions persist across page reloads
 
-### Fallback Support
-- The app gracefully falls back to empty states if Supabase is unavailable
-- All authentication is handled through Supabase Auth
-- All Supabase operations have error handling and fallbacks
-
-For detailed setup instructions, see:
-- [EUGENE_SETUP_INSTRUCTIONS.md](./EUGENE_SETUP_INSTRUCTIONS.md) - Complete admin user setup guide
-- [SUPABASE_SETUP_COMPLETE.md](./SUPABASE_SETUP_COMPLETE.md) - Full Supabase setup guide
-- [supabase/QUICK_SETUP_EUGENE.sql](./supabase/QUICK_SETUP_EUGENE.sql) - Ready-to-run admin setup script
+### Admin Users
+- **Eugene Akiwumi**: Email `akiwumi@gmail.com`, Password `1234` (auto-admin)
+- **Sokina Bobo**: Email containing "sokina" and "bobo" (auto-admin)
 
 ## License
 
