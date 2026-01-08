@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { userService } from '../services/supabaseService';
-import { adminUser } from '../data/dummyData';
+import { User } from '../types';
 import AppHeader from '../components/AppHeader';
 import './SearchPage.css';
 
@@ -10,17 +10,17 @@ const SearchPage = () => {
   const { currentUser } = useApp();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [members, setMembers] = useState([adminUser]);
+  const [members, setMembers] = useState<User[]>([]);
 
   useEffect(() => {
     const loadMembers = async () => {
       try {
         const users = await userService.getAllUsers();
-        setMembers([adminUser, ...users]);
+        // Admin should be included in the users list if loaded correctly
+        setMembers(users);
       } catch (error) {
         console.error('Error loading members:', error);
-        // Fallback to admin user only
-        setMembers([adminUser]);
+        setMembers([]);
       }
     };
     loadMembers();
@@ -44,7 +44,7 @@ const SearchPage = () => {
     return currentUser?.friends.includes(userId) || false;
   };
 
-  const handleViewProfile = (member: typeof adminUser) => {
+  const handleViewProfile = (member: User) => {
     if (member.isAdmin) {
       navigate('/admin-profile');
     } else {

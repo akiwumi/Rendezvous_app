@@ -15,6 +15,8 @@ export const dbToUser = (dbUser: any): User => ({
   likedPosts: dbUser.liked_posts || [],
   registeredEvents: dbUser.registered_events || [],
   eventReminders: dbUser.event_reminders || [],
+  lastLogin: dbUser.last_login ? new Date(dbUser.last_login) : undefined,
+  createdAt: dbUser.created_at ? new Date(dbUser.created_at) : undefined,
 });
 
 // Convert TypeScript camelCase to database snake_case
@@ -31,6 +33,7 @@ export const userToDb = (user: Partial<User>): any => ({
   friends: user.friends,
   liked_posts: user.likedPosts,
   registered_events: user.registeredEvents,
+  last_login: user.lastLogin instanceof Date ? user.lastLogin.toISOString() : user.lastLogin,
 });
 
 // Convert database post to TypeScript post

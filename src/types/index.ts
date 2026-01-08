@@ -18,6 +18,8 @@ export interface User {
   likedPosts?: string[]; // Post IDs
   registeredEvents?: string[]; // Event IDs
   eventReminders?: EventReminder[];
+  lastLogin?: Date; // Last login timestamp
+  createdAt?: Date; // Account creation timestamp
 }
 
 export interface EventReminder {

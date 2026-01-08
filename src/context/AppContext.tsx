@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Post, Event, Notification, Announcement } from '../types';
-import { adminUser } from '../data/dummyData';
-import { authService, userService, postService, eventService, notificationService, invitationService, announcementService } from '../services/supabaseService';
+// Admin user will be loaded from database
+import { authService, userService, postService, eventService, notificationService, invitationService, announcementService, adminService } from '../services/supabaseService';
 
 interface AppContextType {
   currentUser: User | null;
@@ -20,8 +20,13 @@ interface AppContextType {
   registerUser: (userData: Partial<User>, invitationCode: string) => Promise<boolean>;
   loginUser: (email: string, password: string) => Promise<boolean>;
   logoutUser: () => Promise<void>;
+  updateUser: (userId: string, updates: Partial<User>) => Promise<void>;
   addPost: (post: Post) => Promise<void>;
   registerForEvent: (eventId: string, userId: string) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
+  deletePost: (postId: string) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
+  deleteAnnouncement: (announcementId: string) => Promise<void>;
   isSearchOpen: boolean;
   openSearch: () => void;
   closeSearch: () => void;
@@ -37,29 +42,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 'notif-1',
-      type: 'announcement',
-      title: 'New Announcement',
-      message: 'Exclusive Summer Party has been announced!',
-      relatedUserId: adminUser.id,
-      relatedUserName: adminUser.fullName,
-      relatedUserImage: adminUser.profileImage,
-      timestamp: new Date(Date.now() - 3600000),
-      read: false,
-    },
-    {
-      id: 'notif-2',
-      type: 'event',
-      title: 'New Event',
-      message: 'Wine Tasting Evening has been added to the calendar',
-      relatedUserId: adminUser.id,
-      relatedUserName: adminUser.fullName,
-      timestamp: new Date(Date.now() - 7200000),
-      read: false,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Initialize: Check for existing session and load data
   useEffect(() => {
@@ -123,6 +106,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error('Error initializing app:', error);
       } finally {
+        // Always stop loading, even if there's an error
         setLoading(false);
       }
     };
@@ -160,8 +144,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Validate invitation code with Supabase
       const isValidCode = await invitationService.validateInvitationCode(invitationCode);
-      if (!isValidCode && invitationCode !== 'RENDEZVOUS2025') {
+      if (!isValidCode) {
         return false;
+      }
+
+      // Use the invitation code (increment usage count) - skip for fallback code
+      if (invitationCode !== 'RENDEZVOUS2025') {
+        try {
+          await invitationService.useInvitationCode(invitationCode);
+        } catch (error) {
+          console.error('Error incrementing invitation code usage:', error);
+          // Don't fail registration if usage increment fails
+        }
       }
 
       // Create auth user with user-provided password
@@ -175,19 +169,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         );
       } catch (authError: any) {
         console.error('Auth error:', authError);
-        // Fallback to local registration if Supabase fails
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          fullName: userData.fullName!,
-          email: userData.email!,
-          phone: userData.phone!,
-          address: userData.address,
-          socialLinks: userData.socialLinks,
-          profileImage: userData.profileImage,
-          friends: [adminUser.id],
-        };
-        setCurrentUser(newUser);
-        return true;
+        // If Supabase auth fails, registration fails
+        console.error('Supabase authentication failed');
+        return false;
       }
 
       // Create user profile in Supabase
@@ -200,20 +184,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           address: userData.address,
           socialLinks: userData.socialLinks,
           profileImage: userData.profileImage,
-          friends: [adminUser.id],
+          friends: [],
         };
 
         try {
           const createdUser = await userService.createUser(newUser);
+          // Set current user immediately so profile page can access it
           setCurrentUser(createdUser);
           
           // Create welcome notification
-          await addNotification({
-            type: 'announcement',
-            title: 'Welcome to Rendezvous!',
-            message: `Welcome ${userData.fullName}! You're now a member of Rendezvous Social Club.`,
-            relatedItemId: createdUser.id,
-          });
+          try {
+            await addNotification({
+              type: 'announcement',
+              title: 'Welcome to Rendezvous!',
+              message: `Welcome ${userData.fullName}! You're now a member of Rendezvous Social Club.`,
+              relatedItemId: createdUser.id,
+            });
+          } catch (notifError) {
+            console.error('Error creating welcome notification:', notifError);
+            // Don't fail registration if notification fails
+          }
         } catch (error) {
           console.error('Error creating user profile:', error);
           // Still set user locally even if DB save fails
@@ -231,14 +221,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const loginUser = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Try Supabase authentication first
-      let authData;
-      try {
-        authData = await authService.signIn(email, password);
-      } catch (authError: any) {
-        // If Supabase auth fails, fall through to demo credentials
-        authData = null;
-      }
+      // Authenticate with Supabase
+      const authData = await authService.signIn(email, password);
       
       if (authData?.user) {
         // Load user data from Supabase
@@ -247,36 +231,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           if (userData) {
             setCurrentUser(userData);
             // Load user notifications
-            const userNotifications = await notificationService.getNotifications(authData.user.id);
-            if (userNotifications) {
-              setNotifications(userNotifications);
+            try {
+              const userNotifications = await notificationService.getNotifications(authData.user.id);
+              if (userNotifications) {
+                setNotifications(userNotifications);
+              }
+            } catch (notifError) {
+              console.error('Error loading notifications:', notifError);
+              // Don't fail login if notifications fail to load
             }
             return true;
+          } else {
+            console.error('User data not found in database');
+            return false;
           }
         } catch (error) {
           console.error('Error loading user data:', error);
+          return false;
         }
-      }
-
-      // Fallback to demo credentials for development
-      if (email === 'demo@rendezvous.club' && password === 'demo123') {
-        const demoUser: User = {
-          id: 'demo-user-1',
-          fullName: 'Demo User',
-          email: 'demo@rendezvous.club',
-          phone: '+34 123 456 789',
-          address: 'Mallorca, Spain',
-          friends: [adminUser.id],
-          profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
-          socialLinks: {
-            instagram: '@demo_user',
-            linkedin: 'demo-user',
-          },
-          likedPosts: ['post-1', 'post-2'],
-          registeredEvents: ['evt-1', 'evt-2'],
-        };
-        setCurrentUser(demoUser);
-        return true;
       }
 
       return false;
@@ -293,6 +265,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setNotifications([]);
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  };
+
+  const updateUser = async (userId: string, updates: Partial<User>) => {
+    try {
+      const updatedUser = await userService.updateUser(userId, updates);
+      
+      // Update currentUser if it's the logged-in user
+      if (currentUser && currentUser.id === userId) {
+        setCurrentUser(updatedUser);
+      }
+      
+      return updatedUser;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
     }
   };
 
@@ -382,6 +370,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       // Reload event with updated attendees from database
       const updatedEvent = await eventService.getEvent(eventId);
       
+      // Update user's registered events array
+      if (currentUser && currentUser.id === userId) {
+        const currentRegisteredEvents = currentUser.registeredEvents || [];
+        if (!currentRegisteredEvents.includes(eventId)) {
+          const updatedRegisteredEvents = [...currentRegisteredEvents, eventId];
+          try {
+            await userService.updateUser(userId, { registeredEvents: updatedRegisteredEvents });
+            // Update local currentUser state
+            setCurrentUser({ ...currentUser, registeredEvents: updatedRegisteredEvents });
+          } catch (error) {
+            console.error('Error updating user registered events:', error);
+          }
+        }
+      }
+      
       // Update local state
       setEvents(events.map(event => {
         if (event.id === eventId) {
@@ -413,6 +416,51 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const openSearch = () => setIsSearchOpen(true);
   const closeSearch = () => setIsSearchOpen(false);
 
+  // Admin functions
+  const deleteUser = async (userId: string) => {
+    try {
+      await adminService.deleteUser(userId);
+      // Reload users list
+      // If deleted user was current user, logout
+      if (currentUser && currentUser.id === userId) {
+        await logoutUser();
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  };
+
+  const deletePost = async (postId: string) => {
+    try {
+      await adminService.deletePost(postId);
+      setPosts(posts.filter(p => p.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+  };
+
+  const deleteEvent = async (eventId: string) => {
+    try {
+      await adminService.deleteEvent(eventId);
+      setEvents(events.filter(e => e.id !== eventId));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      throw error;
+    }
+  };
+
+  const deleteAnnouncement = async (announcementId: string) => {
+    try {
+      await adminService.deleteAnnouncement(announcementId);
+      setAnnouncements(announcements.filter(a => a.id !== announcementId));
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      throw error;
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -432,8 +480,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         registerUser,
         loginUser,
         logoutUser,
+        updateUser,
         addPost,
         registerForEvent,
+        deleteUser,
+        deletePost,
+        deleteEvent,
+        deleteAnnouncement,
         isSearchOpen,
         openSearch,
         closeSearch,

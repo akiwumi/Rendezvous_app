@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminUser, adminProfile } from '../data/dummyData';
+import { adminProfile } from '../data/dummyData';
 import { useApp } from '../context/AppContext';
-import { userService, postService, eventService, announcementService } from '../services/supabaseService';
+import { userService, postService, eventService, announcementService, invitationService } from '../services/supabaseService';
+import { User } from '../types';
 import CreatePostModal from '../components/CreatePostModal';
 import PostInteractions from '../components/PostInteractions';
 import AppHeader from '../components/AppHeader';
@@ -12,10 +13,18 @@ import './AdminProfilePage.css';
 const AdminProfilePage = () => {
   const navigate = useNavigate();
   const { events, announcements, posts, setPosts, setEvents, setAnnouncements, currentUser } = useApp();
-  const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'events' | 'posts' | 'gallery'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'events' | 'posts' | 'gallery' | 'invitations'>('about');
   const [friends, setFriends] = useState<any[]>([]);
   const [adminPosts, setAdminPosts] = useState<any[]>([]);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [invitationCodes, setInvitationCodes] = useState<any[]>([]);
+  const [newCodeOptions, setNewCodeOptions] = useState({
+    code: '',
+    maxUses: '',
+    expiresInDays: '',
+  });
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [adminUser, setAdminUser] = useState<User | null>(null);
   const [stats, setStats] = useState({
     eventsHosted: 0,
     membersConnected: 0,
@@ -27,37 +36,39 @@ const AdminProfilePage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load admin user from database to get actual UUID
-        let actualAdminUser = adminUser;
+        // Load admin user from database
+        let actualAdminUser: User | null = null;
         try {
-          const adminFromDb = await userService.getUserByEmail('akiwumi@icloud.com');
-          if (adminFromDb) {
+          const adminFromDb = await userService.getUserByEmail('akiwumi@gmail.com');
+          if (adminFromDb && adminFromDb.isAdmin) {
             actualAdminUser = adminFromDb;
+            setAdminUser(adminFromDb);
           }
         } catch (error) {
-          console.log('Admin user not found in DB, using default');
+          console.error('Admin user not found in DB:', error);
+        }
+
+        if (!actualAdminUser) {
+          console.error('Admin user not found. Please ensure Eugene Akiwumi is set up in Supabase.');
+          return;
         }
 
         // Load all users (friends) - exclude admin
         const users = await userService.getAllUsers();
-        const nonAdminUsers = users.filter(u => u.email !== 'akiwumi@icloud.com');
+        const nonAdminUsers = users.filter(u => u.email !== 'akiwumi@gmail.com');
         setFriends(nonAdminUsers);
 
-        // Load admin posts - check by admin ID or email
+        // Load admin posts - check by admin ID
         const allPosts = await postService.getPosts();
         const adminPostsData = allPosts.filter(post => 
-          post.authorId === adminUser.id || 
           post.authorId === actualAdminUser.id ||
-          post.authorName === adminUser.fullName
+          post.authorName === actualAdminUser.fullName
         );
         setAdminPosts(adminPostsData);
 
         // Calculate live stats
         const eventsHosted = events.filter(e => 
-          e.createdBy === adminUser.id || 
-          e.createdBy === actualAdminUser.id ||
-          e.createdBy === 'admin-1' ||
-          e.createdBy === 'd8750992-cb10-485d-8d45-2746af3db391'
+          e.createdBy === actualAdminUser.id
         ).length;
         
         const membersConnected = nonAdminUsers.length;
@@ -65,7 +76,7 @@ const AdminProfilePage = () => {
         const yearsActive = Math.max(1, Math.floor((new Date().getTime() - adminProfile.memberSince.getTime()) / (1000 * 60 * 60 * 24 * 365)));
         
         // Extract unique countries from user addresses
-        const allUserAddresses = [adminUser.address, ...nonAdminUsers.map(u => u.address)].filter(Boolean);
+        const allUserAddresses = [actualAdminUser.address, ...nonAdminUsers.map(u => u.address)].filter(Boolean);
         const countries = new Set(
           allUserAddresses.map(addr => {
             // Extract country from address (assuming format like "City, Country")
@@ -90,20 +101,80 @@ const AdminProfilePage = () => {
     };
     loadData();
   }, [events, posts]);
+
+  // Load invitation codes when tab is active
+  useEffect(() => {
+    if (activeTab === 'invitations') {
+      const loadInvitationCodes = async () => {
+        try {
+          const codes = await invitationService.getAllInvitationCodes();
+          setInvitationCodes(codes);
+        } catch (error) {
+          console.error('Error loading invitation codes:', error);
+        }
+      };
+      loadInvitationCodes();
+    }
+  }, [activeTab]);
+
+  const handleGenerateCode = async () => {
+    setIsGeneratingCode(true);
+    try {
+      const expiresAt = newCodeOptions.expiresInDays 
+        ? new Date(Date.now() + parseInt(newCodeOptions.expiresInDays) * 24 * 60 * 60 * 1000)
+        : undefined;
+
+      const maxUses = newCodeOptions.maxUses ? parseInt(newCodeOptions.maxUses) : undefined;
+
+      const code = await invitationService.generateInvitationCode({
+        code: newCodeOptions.code || undefined,
+        maxUses,
+        expiresAt,
+        active: true,
+      });
+
+      // Reload codes
+      const codes = await invitationService.getAllInvitationCodes();
+      setInvitationCodes(codes);
+
+      // Reset form
+      setNewCodeOptions({ code: '', maxUses: '', expiresInDays: '' });
+      
+      // Show success message
+      alert(`Invitation code generated: ${code}`);
+    } catch (error: any) {
+      console.error('Error generating code:', error);
+      alert(`Error generating code: ${error.message}`);
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  const handleToggleCodeStatus = async (code: string, currentStatus: boolean) => {
+    try {
+      await invitationService.updateInvitationCode(code, { active: !currentStatus });
+      const codes = await invitationService.getAllInvitationCodes();
+      setInvitationCodes(codes);
+    } catch (error) {
+      console.error('Error updating code status:', error);
+      alert('Error updating code status');
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Code copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy code');
+    });
+  };
   
   const handleFriendClick = (friendId: string) => {
     navigate(`/profile/${friendId}`);
   };
   
   // Filter events created by admin
-  const hostedEvents = events.filter(e => {
-    const adminIds = [
-      adminUser.id,
-      'admin-1',
-      'd8750992-cb10-485d-8d45-2746af3db391'
-    ];
-    return adminIds.includes(e.createdBy);
-  });
+  const hostedEvents = adminUser ? events.filter(e => e.createdBy === adminUser.id) : [];
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -153,11 +224,15 @@ const AdminProfilePage = () => {
       </div>
 
       <div className="admin-profile-content">
+        {!adminUser ? (
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading admin profile...</div>
+        ) : (
+          <>
         {/* Profile Header */}
         <div className="admin-profile-header">
           <div className="admin-avatar-container">
             <img
-              src={adminUser.profileImage}
+              src={adminUser.profileImage || '/pebbles.jpg'}
               alt={adminUser.fullName}
               className="admin-avatar"
             />
@@ -225,7 +300,7 @@ const AdminProfilePage = () => {
 
           {/* Contact Button */}
           <button className="contact-admin-btn">
-            💬 Message Pernilla
+            💬 Message Eugene
           </button>
         </div>
 
@@ -268,6 +343,13 @@ const AdminProfilePage = () => {
               <img src="/friends.png" alt="Friends" className="admin-tab-icon" />
               <span className="friends-count">{friends.length}</span>
             </button>
+            <button
+              className={`admin-tab-btn ${activeTab === 'invitations' ? 'active' : ''}`}
+              onClick={() => setActiveTab('invitations')}
+              title="Invitation Codes"
+            >
+              <span className="admin-tab-icon-text">🎫</span>
+            </button>
           </div>
         </div>
 
@@ -277,7 +359,7 @@ const AdminProfilePage = () => {
             <div className="about-section">
               {/* Bio */}
               <div className="about-card">
-                <h2 className="about-card-title">About Pernilla</h2>
+                <h2 className="about-card-title">About Eugene</h2>
                 <p className="admin-bio">{adminProfile.bio}</p>
                 <p className="member-since">
                   <span className="member-since-label">Member since</span>
@@ -324,15 +406,15 @@ const AdminProfilePage = () => {
                 <div className="contact-info">
                   <div className="contact-item">
                     <span className="contact-icon">✉️</span>
-                    <span className="contact-value">{adminUser.email}</span>
+                    <span className="contact-value">{adminUser?.email || ''}</span>
                   </div>
                   <div className="contact-item">
                     <span className="contact-icon">📱</span>
-                    <span className="contact-value">{adminUser.phone}</span>
+                    <span className="contact-value">{adminUser?.phone || ''}</span>
                   </div>
                   <div className="contact-item">
                     <span className="contact-icon">📍</span>
-                    <span className="contact-value">{adminUser.address}</span>
+                    <span className="contact-value">{adminUser?.address || ''}</span>
                   </div>
                 </div>
               </div>
@@ -343,7 +425,7 @@ const AdminProfilePage = () => {
             <div className="friends-section">
               <div className="friends-header">
                 <h2 className="friends-title">Friends ({friends.length})</h2>
-                <span className="friends-subtitle">All members connected with Pernilla</span>
+                <span className="friends-subtitle">All members connected with Eugene</span>
               </div>
               
               {friends.length === 0 ? (
@@ -443,7 +525,7 @@ const AdminProfilePage = () => {
           {activeTab === 'posts' && (
             <div className="posts-section">
               <div className="posts-header">
-                <h2 className="posts-title">Posts by Pernilla</h2>
+                <h2 className="posts-title">Posts by Eugene</h2>
                 <div className="posts-header-right">
                   <span className="posts-count">{stats.postsCount} {stats.postsCount === 1 ? 'post' : 'posts'}</span>
                   <button 
@@ -465,9 +547,9 @@ const AdminProfilePage = () => {
                     )}
                     <div className="admin-post-content">
                       <div className="post-author-row">
-                        <img src={adminUser.profileImage} alt={adminUser.fullName} className="post-author-avatar" />
-                        <div className="post-author-info">
-                          <span className="post-author-name">{adminUser.fullName}</span>
+                        <img src={adminUser?.profileImage || '/pebbles.jpg'} alt={adminUser?.fullName || 'Admin'} className="post-author-avatar" />
+                      <div className="post-author-info">
+                          <span className="post-author-name">{adminUser?.fullName || 'Admin'}</span>
                           <span className="post-date">
                             {new Date(post.createdAt).toLocaleDateString('en-US', { 
                               month: 'short', 
@@ -498,9 +580,9 @@ const AdminProfilePage = () => {
                               await postService.updatePost(postId, { likes: updatedLikes });
                               const updatedPosts = await postService.getPosts();
                               const adminPostsData = updatedPosts.filter(p => 
-                                p.authorId === adminUser.id || 
+                                (adminUser && p.authorId === adminUser.id) || 
                                 p.authorId === currentUser.id ||
-                                p.authorName === adminUser.fullName
+                                (adminUser && p.authorName === adminUser.fullName)
                               );
                               setAdminPosts(adminPostsData);
                             } catch (error) {
@@ -525,9 +607,9 @@ const AdminProfilePage = () => {
                               await postService.updatePost(postId, { comments: updatedComments });
                               const updatedPosts = await postService.getPosts();
                               const adminPostsData = updatedPosts.filter(p => 
-                                p.authorId === adminUser.id || 
+                                (adminUser && p.authorId === adminUser.id) || 
                                 p.authorId === currentUser.id ||
-                                p.authorName === adminUser.fullName
+                                (adminUser && p.authorName === adminUser.fullName)
                               );
                               setAdminPosts(adminPostsData);
                             } catch (error) {
@@ -548,9 +630,9 @@ const AdminProfilePage = () => {
                               await postService.updatePost(postId, { interestedUsers: updatedInterested });
                               const updatedPosts = await postService.getPosts();
                               const adminPostsData = updatedPosts.filter(p => 
-                                p.authorId === adminUser.id || 
+                                (adminUser && p.authorId === adminUser.id) || 
                                 p.authorId === currentUser.id ||
-                                p.authorName === adminUser.fullName
+                                (adminUser && p.authorName === adminUser.fullName)
                               );
                               setAdminPosts(adminPostsData);
                             } catch (error) {
@@ -630,7 +712,133 @@ const AdminProfilePage = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'invitations' && (
+            <div className="invitations-section">
+              <div className="invitations-header">
+                <h2 className="invitations-title">Invitation Codes</h2>
+                <span className="invitations-count">{invitationCodes.length} codes</span>
+              </div>
+
+              {/* Generate New Code Form */}
+              <div className="generate-code-card">
+                <h3 className="generate-code-title">Generate New Invitation Code</h3>
+                <div className="generate-code-form">
+                  <div className="form-group">
+                    <label className="form-label">Custom Code (optional)</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Leave empty for random code"
+                      value={newCodeOptions.code}
+                      onChange={(e) => setNewCodeOptions({ ...newCodeOptions, code: e.target.value.toUpperCase() })}
+                    />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Max Uses (optional)</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="Unlimited"
+                        value={newCodeOptions.maxUses}
+                        onChange={(e) => setNewCodeOptions({ ...newCodeOptions, maxUses: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Expires In (days, optional)</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="Never expires"
+                        value={newCodeOptions.expiresInDays}
+                        onChange={(e) => setNewCodeOptions({ ...newCodeOptions, expiresInDays: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    className="generate-code-btn"
+                    onClick={handleGenerateCode}
+                    disabled={isGeneratingCode}
+                  >
+                    {isGeneratingCode ? 'Generating...' : 'Generate Code'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Existing Codes List */}
+              <div className="codes-list">
+                <h3 className="codes-list-title">Existing Codes</h3>
+                {invitationCodes.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No invitation codes yet</p>
+                  </div>
+                ) : (
+                  <div className="codes-grid">
+                    {invitationCodes.map((code) => {
+                      const isExpired = code.expires_at && new Date(code.expires_at) < new Date();
+                      const isUsedUp = code.max_uses && code.current_uses >= code.max_uses;
+                      const isActive = code.active && !isExpired && !isUsedUp;
+                      
+                      return (
+                        <div key={code.id} className={`code-card ${!isActive ? 'inactive' : ''}`}>
+                          <div className="code-header">
+                            <div className="code-value">
+                              <strong>{code.code}</strong>
+                              <button
+                                className="copy-code-btn"
+                                onClick={() => copyToClipboard(code.code)}
+                                title="Copy code"
+                              >
+                                📋
+                              </button>
+                            </div>
+                            <button
+                              className={`code-status-btn ${code.active ? 'active' : 'inactive'}`}
+                              onClick={() => handleToggleCodeStatus(code.code, code.active)}
+                            >
+                              {code.active ? '✓ Active' : '✗ Inactive'}
+                            </button>
+                          </div>
+                          <div className="code-details">
+                            <div className="code-detail">
+                              <span className="code-detail-label">Uses:</span>
+                              <span className="code-detail-value">
+                                {code.current_uses}
+                                {code.max_uses ? ` / ${code.max_uses}` : ' / ∞'}
+                              </span>
+                            </div>
+                            {code.expires_at && (
+                              <div className="code-detail">
+                                <span className="code-detail-label">Expires:</span>
+                                <span className={`code-detail-value ${isExpired ? 'expired' : ''}`}>
+                                  {new Date(code.expires_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                            <div className="code-detail">
+                              <span className="code-detail-label">Created:</span>
+                              <span className="code-detail-value">
+                                {new Date(code.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          {(isExpired || isUsedUp) && (
+                            <div className="code-warning">
+                              {isExpired ? '⚠️ Expired' : '⚠️ Usage limit reached'}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
+          </>
+        )}
       </div>
 
       <BottomNav />
@@ -659,7 +867,7 @@ const AdminProfilePage = () => {
                   date: postData.eventDate,
                   location: postData.location,
                   attendees: [],
-                  createdBy: currentUser.id,
+                  createdBy: currentUser?.id || '',
                 });
               } else if (postData.postType === 'announcement' && postData.eventDate) {
                 await announcementService.createAnnouncement({
@@ -669,7 +877,7 @@ const AdminProfilePage = () => {
                   image: postData.image,
                   date: postData.eventDate.toISOString(),
                   type: 'event',
-                  created_by: currentUser.id,
+                  created_by: currentUser?.id || '',
                 });
               }
               

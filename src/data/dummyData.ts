@@ -1,26 +1,26 @@
 import { Announcement, Event, User, Post } from '../types';
 
-// Admin User - Pernilla Ewarldsson
+// Admin User - Eugene Akiwumi (Pebbles)
 export const adminUser: User = {
   id: 'admin-1',
-  fullName: 'Pernilla Ewarldsson',
-  email: 'akiwumi@icloud.com',
+  fullName: 'Eugene Akiwumi',
+  email: 'akiwumi@gmail.com',
   phone: '+34 971 123 456',
   address: 'Palma de Mallorca, Spain',
-  profileImage: '/pernilla.png',
+  profileImage: '/pebbles.jpg',
   friends: ['user-1', 'user-2', 'user-3', 'user-4', 'user-5', 'user-6'],
   isAdmin: true,
   socialLinks: {
-    instagram: '@pernilla_rendezvous',
-    facebook: 'pernilla.ewarldsson',
-    twitter: '@PernillaRSC',
-    linkedin: 'pernilla-ewarldsson',
+    instagram: '@pebbles_rendezvous',
+    facebook: 'eugene.akiwumi',
+    twitter: '@PebblesRSC',
+    linkedin: 'eugene-akiwumi',
   },
   likedPosts: ['post-1', 'post-2'],
   registeredEvents: ['evt-1', 'evt-2', 'evt-3', 'evt-4', 'evt-5', 'evt-6', 'evt-7', 'evt-8'],
 };
 
-// Dummy Users
+// Dummy Users - DEPRECATED: Users are now loaded from Supabase
 export const dummyUsers: User[] = [
   {
     id: 'user-1',
@@ -127,15 +127,15 @@ export const dummyUsers: User[] = [
 
 // Admin Bio and Extended Info
 export const adminProfile = {
-  bio: `Founder and Director of Rendezvous Social Club, Pernilla Ewarldsson has been the heart and soul of Mallorca's most exclusive private social club since 2018. With over 15 years of experience in luxury hospitality and event management, Pernilla brings a unique blend of Scandinavian elegance and Mediterranean warmth to every gathering.
+  bio: `Founder and Director of Rendezvous Social Club, Eugene Akiwumi (known as Pebbles) has been the heart and soul of Mallorca's most exclusive private social club. With extensive experience in luxury hospitality and event management, Eugene brings a unique blend of warmth, professionalism, and Mediterranean charm to every gathering.
 
-Born in Stockholm, Sweden, Pernilla fell in love with Mallorca during a summer holiday in 2005 and never looked back. Her vision for Rendezvous was simple: create a space where like-minded individuals could connect, celebrate, and create lasting memories in one of the world's most beautiful destinations.`,
+Eugene's vision for Rendezvous is to create a space where like-minded individuals can connect, celebrate, and create lasting memories in one of the world's most beautiful destinations.`,
   
   role: 'Founder & Director',
   memberSince: new Date('2018-03-15'),
   
   achievements: [
-    'Founded Rendezvous Social Club in 2018',
+    'Founded Rendezvous Social Club',
     'Organized over 500+ exclusive events',
     'Built a community of 200+ distinguished members',
     'Featured in Mallorca Magazine\'s "Top 10 Influencers"',
@@ -151,7 +151,7 @@ Born in Stockholm, Sweden, Pernilla fell in love with Mallorca during a summer h
     'Interior Design',
   ],
   
-  languages: ['Swedish', 'English', 'Spanish', 'German'],
+  languages: ['English', 'Spanish', 'German'],
   
   quote: '"Life is too short for ordinary experiences. At Rendezvous, we create extraordinary moments that become cherished memories."',
   

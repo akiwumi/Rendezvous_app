@@ -9,7 +9,7 @@ import './FeedPage.css';
 
 const FeedPage = () => {
   const navigate = useNavigate();
-  const { currentUser, posts, setPosts, addPost } = useApp();
+  const { currentUser, posts, setPosts, addPost, updateUser } = useApp();
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -214,7 +214,17 @@ const FeedPage = () => {
                       ? post.likes.filter(id => id !== currentUser.id)
                       : [...post.likes, currentUser.id];
                     
+                    // Update post likes
                     await postService.updatePost(postId, { likes: updatedLikes });
+                    
+                    // Update user's liked posts array
+                    const currentLikedPosts = currentUser.likedPosts || [];
+                    const updatedLikedPosts = isLiked
+                      ? currentLikedPosts.filter(id => id !== postId)
+                      : [...currentLikedPosts, postId];
+                    
+                    await updateUser(currentUser.id, { likedPosts: updatedLikedPosts });
+                    
                     const updatedPosts = await postService.getPosts();
                     setPosts(updatedPosts);
                   } catch (error) {

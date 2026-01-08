@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { adminUser } from '../data/dummyData';
+// Admin user will be loaded from database
 import { userService, postService } from '../services/supabaseService';
 import AppHeader from '../components/AppHeader';
 import './ProfilePage.css';
@@ -9,20 +9,27 @@ import './ProfilePage.css';
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId?: string }>();
-  const { currentUser, events } = useApp();
+  const { currentUser, events, updateUser } = useApp();
   const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'posts' | 'events' | 'reminders'>('about');
-  const [profileUser, setProfileUser] = useState(adminUser);
-  const [allUsers, setAllUsers] = useState([adminUser]);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [adminUser, setAdminUser] = useState<User | null>(null);
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfileClick = (authorId: string) => {
-    if (authorId === 'admin-1') {
+    const admin = adminUser || allUsers.find(u => u.isAdmin);
+    if (admin && authorId === admin.id) {
       navigate('/admin-profile');
+    } else {
+      navigate(`/profile/${authorId}`);
     }
   };
 
   const handleFriendClick = (friendId: string) => {
-    if (friendId === 'admin-1') {
+    const admin = adminUser || allUsers.find(u => u.isAdmin);
+    if (admin && friendId === admin.id) {
       navigate('/admin-profile');
     } else {
       navigate(`/profile/${friendId}`);
@@ -33,25 +40,42 @@ const ProfilePage = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
+        // Load admin user from database
+        try {
+          const admin = await userService.getUserByEmail('akiwumi@gmail.com');
+          if (admin && admin.isAdmin) {
+            setAdminUser(admin);
+          }
+        } catch (error) {
+          console.error('Error loading admin user:', error);
+        }
+
         // Load all users
         const users = await userService.getAllUsers();
-        setAllUsers([adminUser, ...users]);
+        setAllUsers(users);
+
+        // Find admin in users list
+        const foundAdmin = users.find(u => u.isAdmin && u.email === 'akiwumi@gmail.com');
+        if (foundAdmin) {
+          setAdminUser(foundAdmin);
+        }
 
         // Load profile user
         if (userId) {
-          if (userId === 'admin-1') {
-            setProfileUser(adminUser);
+          // Check if it's admin email or admin-1 reference
+          if (userId === 'admin-1' || userId === foundAdmin?.id) {
+            setProfileUser(foundAdmin || adminUser);
           } else {
             try {
               const user = await userService.getUser(userId);
               setProfileUser(user);
             } catch (error) {
               console.error('Error loading user:', error);
-              setProfileUser(adminUser);
+              setProfileUser(currentUser || foundAdmin || null);
             }
           }
         } else {
-          setProfileUser(currentUser || adminUser);
+          setProfileUser(currentUser || foundAdmin || adminUser || null);
         }
       } catch (error) {
         console.error('Error loading users:', error);
@@ -59,7 +83,7 @@ const ProfilePage = () => {
     };
 
     loadUserData();
-  }, [userId, currentUser]);
+  }, [userId, currentUser, adminUser]);
 
   // Load liked posts
   useEffect(() => {
@@ -80,7 +104,8 @@ const ProfilePage = () => {
   }, [profileUser]);
 
   const profile = profileUser;
-  const isAdmin = profile.isAdmin || profile.id === adminUser.id;
+  const admin = adminUser || allUsers.find(u => u.isAdmin);
+  const isAdmin = profile?.isAdmin || (admin && profile?.id === admin.id);
 
   // Get friend user objects
   const friends = profile.friends
@@ -134,8 +159,83 @@ const ProfilePage = () => {
     return 'Soon';
   };
 
+  // Check if viewing own profile (user is logged in and viewing their own profile)
+  // Allow updates for non-admin profiles only (admin profile is managed separately)
+  const isOwnProfile = currentUser && profile && currentUser.id === profile.id && (!admin || profile.id !== admin.id);
+
+  const handleImageClick = () => {
+    if (isOwnProfile && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      // Convert image to base64 data URL
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result as string;
+          
+          // Update user profile with new image
+          const updatedUser = await updateUser(currentUser.id, {
+            profileImage: base64Image,
+          });
+
+          // Update local state
+          setProfileUser(updatedUser);
+
+          // Reset file input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          alert('Failed to update profile image. Please try again.');
+        } finally {
+          setIsUploadingImage(false);
+        }
+      };
+      reader.onerror = () => {
+        setIsUploadingImage(false);
+        alert('Error reading image file. Please try again.');
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      setIsUploadingImage(false);
+      alert('Failed to process image. Please try again.');
+    }
+  };
+
   // Dummy hero image for profile - Mallorca landscape
   const profileHeroImage = 'https://www.cunard.com/content/dam/cunard/marketing-assets/cunard-stories/mediterranean/Mediterranean_Beach_1480x832.jpg.image.1480.832.low.jpg';
+
+  if (!profile) {
+    return (
+      <div className="profile-page">
+        <AppHeader />
+        <div style={{ padding: '2rem', textAlign: 'center' }}>Loading profile...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page">
@@ -154,16 +254,37 @@ const ProfilePage = () => {
       <div className="profile-content">
         <div className="profile-header">
           <div className="profile-image-container">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: 'none' }}
+            />
             {profile.profileImage ? (
               <img
                 src={profile.profileImage}
                 alt={profile.fullName}
-                className="profile-image"
+                className={`profile-image ${isOwnProfile ? 'editable' : ''}`}
               />
             ) : (
-              <div className="profile-image-placeholder">
+              <div className={`profile-image-placeholder ${isOwnProfile ? 'editable' : ''}`}>
                 {profile.fullName.charAt(0).toUpperCase()}
               </div>
+            )}
+            {isOwnProfile && (
+              <button
+                className="profile-image-upload-btn"
+                onClick={handleImageClick}
+                disabled={isUploadingImage}
+                title="Change profile picture"
+              >
+                {isUploadingImage ? (
+                  <span className="upload-spinner">⏳</span>
+                ) : (
+                  <span className="camera-icon">📷</span>
+                )}
+              </button>
             )}
           </div>
           <div className="profile-name-row">

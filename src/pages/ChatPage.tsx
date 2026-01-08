@@ -1,23 +1,40 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { adminUser } from '../data/dummyData';
-import { Message } from '../types';
+import { userService } from '../services/supabaseService';
+import { Message, User } from '../types';
 import AppHeader from '../components/AppHeader';
 import './ChatPage.css';
 
 const ChatPage = () => {
   const { currentUser } = useApp();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'msg-1',
-      senderId: adminUser.id,
-      senderName: adminUser.fullName,
-      senderImage: adminUser.profileImage,
-      content: 'Welcome to Rendezvous Social Club! Feel free to ask any questions.',
-      timestamp: new Date(Date.now() - 3600000),
-      isAdmin: true,
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [adminUser, setAdminUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const loadAdmin = async () => {
+      try {
+        const admin = await userService.getUserByEmail('akiwumi@gmail.com');
+        if (admin && admin.isAdmin) {
+          setAdminUser(admin);
+          // Add welcome message from admin
+          setMessages([
+            {
+              id: 'msg-1',
+              senderId: admin.id,
+              senderName: admin.fullName,
+              senderImage: admin.profileImage,
+              content: 'Welcome to Rendezvous Social Club! Feel free to ask any questions.',
+              timestamp: new Date(Date.now() - 3600000),
+              isAdmin: true,
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error loading admin user:', error);
+      }
+    };
+    loadAdmin();
+  }, []);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

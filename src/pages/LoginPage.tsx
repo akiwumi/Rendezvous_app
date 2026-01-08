@@ -28,7 +28,7 @@ const LoginPage = () => {
       if (success) {
         navigate('/announcements');
       } else {
-        setError('Invalid email or password. Use: demo@rendezvous.club / demo123');
+        setError('Invalid email or password. Please check your credentials and try again.');
       }
     } catch (error: any) {
       setError(error.message || 'Login failed. Please try again.');
@@ -41,12 +41,6 @@ const LoginPage = () => {
       <div className="login-content">
         <h1 className="page-title">Welcome Back</h1>
         <p className="page-subtitle">Login to access Rendezvous Social Club</p>
-
-        <div className="demo-credentials">
-          <p className="demo-title">Demo Credentials:</p>
-          <p className="demo-info">Email: <strong>demo@rendezvous.club</strong></p>
-          <p className="demo-info">Password: <strong>demo123</strong></p>
-        </div>
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">

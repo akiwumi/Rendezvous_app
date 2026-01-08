@@ -111,8 +111,9 @@ const RegistrationPage = () => {
     setIsSubmitting(false);
 
     if (success) {
-      alert('Registration successful! You have been logged in. Please check your email for a confirmation link.');
-      navigate('/feed');
+      // Redirect to profile page after successful registration
+      // The user is automatically authenticated via Supabase Auth
+      navigate('/profile');
     } else {
       setErrors({ 
         invitationCode: 'Registration failed. Please check your invitation code and try again.' 
