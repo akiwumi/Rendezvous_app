@@ -92,8 +92,12 @@ The app uses Supabase Authentication for all user authentication.
 The landing page includes **Login** and **Register** buttons. Users must choose an option to proceed.
 
 **Admin Login Credentials:**
-- Email: `akiwumi@gmail.com`
-- Password: `1234`
+- **Eugene Akiwumi:**
+  - Email: `akiwumi@gmail.com`
+  - Password: `1234`
+- **Sokina Bobo:**
+  - Email: `sokina.bobo@example.com` (or as configured in Supabase)
+  - Password: `demo123` (or as configured in Supabase)
 
 **Supabase Authentication:**
 - All users register and login with email/password

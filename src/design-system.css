@@ -1,25 +1,40 @@
 /**
  * Rendezvous Social Club Design System - CSS Variables
  * 
- * Use these CSS variables in your web projects for consistent styling
+ * Modern Social Media App Design System
+ * Inspired by contemporary mobile app interfaces
+ * Maintains green color palette (#556B2F)
  */
 
 :root {
-  /* Primary Brand Colors - Rustic Gold */
+  /* Primary Brand Colors - Green Palette */
+  --color-primary: #556B2F;        /* Main green - Dark Olive */
+  --color-primary-light: #6B8E3A; /* Light green variant */
+  --color-primary-dark: #3D4F21;  /* Dark green variant */
+  --color-primary-hover: #5A7A35; /* Hover state */
+  --color-primary-active: #4A5F2A; /* Active state */
+  
+  /* Accent Colors - Gold (maintained from original) */
   --color-gold: #e3d18d;
   --color-gold-light: #e8d797;
   --color-gold-dark: #d4bf74;
+  
+  /* Green Palette Variants */
   --color-olive: #556B2F;
   --color-olive-light: #6B8E3A;
   --color-olive-dark: #3D4F21;
 
-  /* Background Colors */
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8F9FA;
-  --bg-tertiary: #E9ECEF;
-  --bg-dark: #556B2F;
-  --bg-olive: #556B2F;
-  --bg-overlay: rgba(0, 0, 0, 0.5);
+  /* Background Colors - Modern Social Media App */
+  --bg-primary: #FFFFFF;           /* Main white background */
+  --bg-secondary: #F8F9FA;        /* Light grey for cards */
+  --bg-tertiary: #F5F5F5;         /* Subtle grey for sections */
+  --bg-card: #FFFFFF;             /* Card background */
+  --bg-card-hover: #FAFAFA;       /* Card hover state */
+  --bg-dark: #556B2F;             /* Green dark background */
+  --bg-olive: #556B2F;             /* Green accent */
+  --bg-overlay: rgba(0, 0, 0, 0.6); /* Dark overlay for modals */
+  --bg-overlay-light: rgba(0, 0, 0, 0.3); /* Light overlay */
+  --bg-story: #000000;            /* Full-screen story background */
 
   /* Text Colors */
   --text-primary: #1A1A1A;
@@ -34,11 +49,20 @@
   --status-error: #DC3545;
   --status-info: #17A2B8;
 
-  /* Interactive Colors */
-  --interactive-blue: #007AFF;
-  --interactive-red: #FF3B30;
-  --interactive-purple: #AF52DE;
-  --interactive-orange: #FF9500;
+  /* Interactive Colors - Social Media Engagement */
+  --interactive-blue: #007AFF;     /* Links, profile icons */
+  --interactive-red: #FF3040;      /* Like/heart, notifications */
+  --interactive-red-light: #FF6B7A; /* Like hover state */
+  --interactive-purple: #AF52DE;   /* Accent elements */
+  --interactive-orange: #FF9500;    /* Accent elements */
+  --interactive-green: #556B2F;    /* Primary green for CTAs */
+  --interactive-grey: #8E8E93;     /* Secondary actions */
+  
+  /* Engagement Colors */
+  --engagement-like: #FF3040;      /* Heart/like icon */
+  --engagement-comment: #007AFF;   /* Comment icon */
+  --engagement-share: #34C759;     /* Share icon (green variant) */
+  --engagement-save: #FF9500;       /* Save/bookmark icon */
 
   /* Border Colors */
   --border-light: #E9ECEF;
@@ -55,14 +79,18 @@
   --spacing-2xl: 48px;
   --spacing-3xl: 64px;
 
-  /* Border Radius */
+  /* Border Radius - Modern Rounded Design */
   --radius-none: 0;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --radius-2xl: 24px;
-  --radius-full: 9999px;
+  --radius-2xl: 20px;              /* Card corners */
+  --radius-3xl: 24px;              /* Large cards */
+  --radius-full: 9999px;           /* Circular elements */
+  --radius-avatar: 50%;            /* Profile pictures */
+  --radius-button: 8px;            /* Button corners */
+  --radius-card: 12px;             /* Card default */
 
   /* Typography - Font Sizes */
   --font-size-xs: 12px;
@@ -88,35 +116,59 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
 
-  /* Layout */
+  /* Layout - Modern Social Media App */
   --screen-padding-h: 16px;
-  --screen-padding-v: 16px;
+  --screen-padding-v: 12px;
   --card-padding-h: 16px;
   --card-padding-v: 12px;
-  --header-height: 56px;
-  --nav-height: 56px;
-  --search-bar-height: 60px;
+  --header-height: 44px;           /* Compact header */
+  --header-height-large: 56px;     /* Large header */
+  --nav-height: 60px;              /* Bottom navigation */
+  --nav-icon-size: 24px;           /* Navigation icon size */
+  --search-bar-height: 44px;       /* Search bar height */
+  --status-bar-height: 44px;       /* iOS status bar */
+  
+  /* Card Layout */
+  --card-gap: 12px;                /* Gap between cards */
+  --card-margin: 12px;              /* Card margin */
+  --feed-padding: 0px;             /* Feed container padding */
 
-  /* Component Sizes */
-  --avatar-sm: 32px;
-  --avatar-md: 40px;
-  --avatar-lg: 56px;
-  --avatar-xl: 80px;
+  /* Component Sizes - Social Media App */
+  --avatar-xs: 24px;               /* Tiny avatars */
+  --avatar-sm: 32px;               /* Small avatars */
+  --avatar-md: 40px;               /* Medium avatars */
+  --avatar-lg: 56px;               /* Large avatars */
+  --avatar-xl: 80px;               /* Extra large */
+  --avatar-story: 64px;            /* Story circle size */
+  
+  --icon-xs: 12px;
   --icon-sm: 16px;
-  --icon-md: 24px;
-  --icon-lg: 32px;
-  --icon-xl: 48px;
+  --icon-md: 20px;                 /* Standard icon */
+  --icon-lg: 24px;                 /* Large icon */
+  --icon-xl: 32px;
+  --icon-engagement: 20px;         /* Like/comment/share icons */
+  
   --button-height-sm: 36px;
-  --button-height-md: 44px;
+  --button-height-md: 44px;        /* Standard button */
   --button-height-lg: 52px;
-  --daily-card-width: 120px;
-  --daily-card-height: 160px;
+  --button-padding-h: 16px;
+  --button-padding-v: 12px;
+  
+  /* Card Sizes */
+  --card-min-height: 200px;
+  --story-width: 100vw;
+  --story-height: 100vh;
+  --feed-card-width: 100%;
 
-  /* Shadows */
+  /* Shadows - Modern Elevation System */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.15);
-  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08); /* Card shadow */
+  --shadow-button: 0 2px 4px rgba(85, 107, 47, 0.2); /* Green button shadow */
+  --shadow-nav: 0 -2px 8px rgba(0, 0, 0, 0.1); /* Bottom nav shadow */
+  --shadow-header: 0 2px 4px rgba(0, 0, 0, 0.05); /* Header shadow */
 
   /* Animations */
   --animation-fast: 150ms;

@@ -23,15 +23,54 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     
+    // Show loading state
+    const submitButton = e.currentTarget.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = submitButton?.textContent || 'Login';
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Logging in...';
+    }
+    
     try {
-      const success = await loginUser(formData.email, formData.password);
+      const email = formData.email.trim().toLowerCase();
+      const password = formData.password;
+      
+      console.log('Login attempt:', { email, passwordLength: password.length });
+      
+      const success = await loginUser(email, password);
+      
       if (success) {
-        navigate('/announcements');
+        console.log('Login successful, navigating to feed...');
+        // Navigate to feed for Eugene (admin), announcements for others
+        const userEmail = email;
+        if (userEmail === 'akiwumi@gmail.com') {
+          navigate('/feed');
+        } else {
+          navigate('/announcements');
+        }
       } else {
+        console.error('Login returned false');
         setError('Invalid email or password. Please check your credentials and try again.');
       }
     } catch (error: any) {
-      setError(error.message || 'Login failed. Please try again.');
+      console.error('Login error caught:', error);
+      // Show more detailed error messages
+      let errorMessage = error.message || 'Login failed. Please try again.';
+      
+      // Preserve newlines in error messages
+      if (errorMessage.includes('\n')) {
+        errorMessage = errorMessage.split('\n').map((line: string, idx: number) => (
+          <span key={idx}>{line}<br /></span>
+        ));
+      }
+      
+      setError(errorMessage);
+    } finally {
+      // Restore button state
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+      }
     }
   };
 
@@ -74,7 +113,9 @@ const LoginPage = () => {
           </div>
 
           {error && (
-            <div className="error-message">{error}</div>
+            <div className="error-message" style={{ whiteSpace: 'pre-line' }}>
+              {typeof error === 'string' ? error : error}
+            </div>
           )}
 
           <button

@@ -221,40 +221,114 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const loginUser = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log('=== LOGIN ATTEMPT ===');
+      console.log('Email:', email);
+      
       // Authenticate with Supabase
       const authData = await authService.signIn(email, password);
       
       if (authData?.user) {
-        // Load user data from Supabase
-        try {
-          const userData = await userService.getUser(authData.user.id);
-          if (userData) {
-            setCurrentUser(userData);
-            // Load user notifications
-            try {
-              const userNotifications = await notificationService.getNotifications(authData.user.id);
-              if (userNotifications) {
-                setNotifications(userNotifications);
-              }
-            } catch (notifError) {
-              console.error('Error loading notifications:', notifError);
-              // Don't fail login if notifications fail to load
-            }
-            return true;
-          } else {
-            console.error('User data not found in database');
-            return false;
+        const authUser = authData.user;
+        console.log('✓ Auth successful for user:', authUser.email, 'ID:', authUser.id);
+        
+        // Try to load user data from Supabase
+        let userData = await userService.getUser(authUser.id);
+        
+        // If user profile doesn't exist, create it
+        if (!userData) {
+          console.log('⚠ User profile not found in database, creating new profile...');
+          
+          // Get user metadata from auth
+          const userMetadata = authUser.user_metadata || {};
+          const emailLower = email.toLowerCase();
+          const isEugene = emailLower === 'akiwumi@gmail.com';
+          const isSokina = emailLower.includes('sokina') && emailLower.includes('bobo');
+          
+          // Determine full name based on email
+          let fullName = userMetadata.full_name || email.split('@')[0];
+          if (isEugene) {
+            fullName = 'Eugene Akiwumi';
+          } else if (isSokina) {
+            fullName = 'Sokina Bobo';
           }
-        } catch (error) {
-          console.error('Error loading user data:', error);
-          return false;
+          
+          // Create basic user profile
+          const newUser: User = {
+            id: authUser.id,
+            email: authUser.email || email,
+            fullName: fullName,
+            phone: userMetadata.phone || '',
+            address: userMetadata.address || '',
+            profileImage: userMetadata.profile_image || '/pebbles.jpg',
+            socialLinks: userMetadata.social_links || {},
+            friends: [],
+            likedPosts: [],
+            registeredEvents: [],
+            isAdmin: isEugene || isSokina, // Auto-set admin for Eugene and Sokina
+          };
+          
+          console.log('Creating user profile with data:', {
+            id: newUser.id,
+            email: newUser.email,
+            fullName: newUser.fullName,
+            isAdmin: newUser.isAdmin
+          });
+          
+          try {
+            userData = await userService.createUser(newUser);
+            console.log('✓ User profile created successfully:', userData.email, 'Admin:', userData.isAdmin);
+          } catch (createError: any) {
+            console.error('✗ Error creating user profile:', createError);
+            throw new Error(`Failed to create user profile: ${createError.message}. Please check Supabase RLS policies and database permissions.`);
+          }
+        } else {
+          console.log('✓ User profile loaded successfully:', userData.email, 'Admin:', userData.isAdmin);
         }
+        
+        if (userData) {
+          setCurrentUser(userData);
+          console.log('✓ Current user set in context');
+          
+          // Load user notifications
+          try {
+            const userNotifications = await notificationService.getNotifications(authData.user.id);
+            if (userNotifications) {
+              setNotifications(userNotifications);
+            }
+          } catch (notifError) {
+            console.error('Error loading notifications:', notifError);
+            // Don't fail login if notifications fail to load
+          }
+          
+          console.log('=== LOGIN SUCCESS ===');
+          return true;
+        }
+        
+        console.log('✗ No user data available');
+        return false;
       }
 
+      console.log('✗ No user in auth response');
       return false;
-    } catch (error) {
-      console.error('Login error:', error);
-      return false;
+    } catch (error: any) {
+      console.error('=== LOGIN ERROR ===');
+      console.error('Error details:', error);
+      
+      // Check for specific Supabase auth errors and provide helpful messages
+      if (error?.message?.includes('Invalid login credentials') || 
+          error?.message?.includes('Invalid') ||
+          error?.status === 400) {
+        throw new Error('Invalid email or password. Please verify:\n- Email: akiwumi@gmail.com\n- Password: 1234\n\nIf this is correct, the password in Supabase Auth may be different. Please reset it in Supabase Dashboard → Authentication → Users.');
+      } else if (error?.message?.includes('Email not confirmed') || 
+                 error?.message?.includes('not confirmed')) {
+        throw new Error('Email not confirmed. Please go to Supabase Dashboard → Authentication → Users → Find your user → Click "Confirm" button.');
+      } else if (error?.message?.includes('User profile not found') || 
+                 error?.message?.includes('Failed to create user profile')) {
+        throw error; // Re-throw custom message
+      }
+      
+      // Re-throw with original message
+      throw new Error(error?.message || 'Login failed. Please try again.');
     }
   };
 

@@ -100,13 +100,17 @@ const PostInteractions = ({
         </div>
       )}
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Modern Engagement Bar */}
       <div className="post-actions">
         <button
           className={`action-btn ${isLiked ? 'liked' : ''}`}
           onClick={handleLike}
+          title="Like"
         >
-          {isLiked ? '❤️' : '🤍'} Like ({post.likes.length})
+          <span className="action-icon">
+            {isLiked ? '❤️' : '🤍'}
+          </span>
+          <span>{post.likes.length || 0}</span>
         </button>
         
         <button
@@ -115,8 +119,10 @@ const PostInteractions = ({
             setShowComments(!showComments);
             setShowCommentInput(!showCommentInput);
           }}
+          title="Comment"
         >
-          💬 Comment ({post.comments.length})
+          <span className="action-icon">💬</span>
+          <span>{post.comments.length || 0}</span>
         </button>
 
         {(post.postType === 'event' || post.postType === 'announcement') && (
@@ -124,15 +130,18 @@ const PostInteractions = ({
             <button
               className={`action-btn ${isInterested ? 'interested' : ''}`}
               onClick={handleRegisterInterest}
+              title="Register Interest"
             >
-              {isInterested ? '✓' : '📌'} {isInterested ? 'Interested' : 'Register Interest'} ({post.interestedUsers?.length || 0})
+              <span className="action-icon">{isInterested ? '✓' : '📌'}</span>
+              <span>{post.interestedUsers?.length || 0}</span>
             </button>
             
             <button
               className="action-btn"
               onClick={() => onAddToCalendar(post)}
+              title="Add to Calendar"
             >
-              📅 Add to Calendar
+              <span className="action-icon">📅</span>
             </button>
           </>
         )}

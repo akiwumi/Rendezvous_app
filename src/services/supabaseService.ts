@@ -97,7 +97,15 @@ export const userService = {
       .eq('id', userId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // Check if it's a "not found" error - return null instead of throwing
+      if (error.code === 'PGRST116' || error.message?.includes('No rows') || error.message?.includes('not found')) {
+        console.log(`User not found in database: ${userId}`);
+        return null;
+      }
+      // For other errors, still throw
+      throw error;
+    }
     return dbToUser(data);
   },
 

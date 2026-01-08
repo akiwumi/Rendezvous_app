@@ -11,9 +11,11 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 101;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--spacing-xs));
+  z-index: var(--z-fixed);
   margin: 0;
+  box-shadow: var(--shadow-nav);
 }
 
 .nav-item {
@@ -37,18 +39,20 @@
 }
 
 .nav-icon {
-  width: var(--icon-md);
-  height: var(--icon-md);
+  width: var(--nav-icon-size);
+  height: var(--nav-icon-size);
   display: flex;
   align-items: center;
   justify-content: center;
   object-fit: contain;
   opacity: 0.6;
-  transition: opacity 0.2s ease;
+  transition: var(--transition-fast);
 }
 
 .nav-item.active .nav-icon {
   opacity: 1;
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 4px rgba(85, 107, 47, 0.3));
 }
 
 .nav-badge {
@@ -70,10 +74,11 @@
 }
 
 .nav-indicator {
-  width: 40px;
-  height: 2px;
-  background-color: var(--text-primary);
+  width: 32px;
+  height: 3px;
+  background-color: var(--color-primary);
   border-radius: var(--radius-full);
+  margin-top: 2px;
 }
 
 .nav-item:hover .nav-icon {
