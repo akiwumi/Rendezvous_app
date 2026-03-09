@@ -3,19 +3,19 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { userService, postService } from '../services/localDataService';
 import { User } from '../types';
-import AppHeader from '../components/AppHeader';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId?: string }>();
   const { currentUser, events, updateUser } = useApp();
-  const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'posts' | 'events' | 'reminders'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'posts' | 'events'>('about');
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfileClick = (authorId: string) => {
@@ -36,91 +36,60 @@ const ProfilePage = () => {
     }
   };
 
-  // Load user data
   useEffect(() => {
     const loadUserData = async () => {
+      setLoading(true);
       try {
-        // Load admin user from database
-        try {
-          const admin = await userService.getUserByEmail('akiwumi@gmail.com');
-          if (admin && admin.isAdmin) {
-            setAdminUser(admin);
-          }
-        } catch (error) {
-          console.error('Error loading admin user:', error);
-        }
-
-        // Load all users
         const users = await userService.getAllUsers();
         setAllUsers(users);
 
-        // Find admin in users list
         const foundAdmin = users.find(u => u.isAdmin && u.email === 'akiwumi@gmail.com');
-        if (foundAdmin) {
-          setAdminUser(foundAdmin);
-        }
+        if (foundAdmin) setAdminUser(foundAdmin);
 
-        // Load profile user
         if (userId) {
-          // Check if it's admin by ID or email
-          const isAdminId = userId === 'admin-1' || userId === foundAdmin?.id || userId === adminUser?.id;
-          if (isAdminId && (foundAdmin || adminUser)) {
-            setProfileUser(foundAdmin || adminUser);
+          const isAdminId = userId === 'admin-1' || userId === foundAdmin?.id;
+          if (isAdminId && foundAdmin) {
+            setProfileUser(foundAdmin);
           } else {
             try {
               const user = await userService.getUser(userId);
               if (user) {
-                // Double check if this user is admin
                 if (user.isAdmin && user.email === 'akiwumi@gmail.com') {
                   navigate('/admin-profile');
                   return;
                 }
                 setProfileUser(user);
               } else {
-                // User not found, try to find by email
-                const userByEmail = users.find(u => u.email === userId);
-                if (userByEmail) {
-                  if (userByEmail.isAdmin) {
-                    navigate('/admin-profile');
-                    return;
-                  }
-                  setProfileUser(userByEmail);
-                } else {
-                  setProfileUser(currentUser || foundAdmin || null);
-                }
+                const userInList = users.find(u => u.id === userId || u.email === userId);
+                setProfileUser(userInList || currentUser || null);
               }
-            } catch (error) {
-              console.error('Error loading user:', error);
-              // Try to find user in the loaded users list
+            } catch {
               const userInList = users.find(u => u.id === userId);
-              if (userInList) {
-                setProfileUser(userInList);
-              } else {
-                setProfileUser(currentUser || foundAdmin || null);
-              }
+              setProfileUser(userInList || currentUser || null);
             }
           }
         } else {
-          setProfileUser(currentUser || foundAdmin || adminUser || null);
+          setProfileUser(currentUser || foundAdmin || null);
         }
       } catch (error) {
-        console.error('Error loading users:', error);
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadUserData();
-  }, [userId, currentUser, adminUser]);
+  }, [userId, currentUser]);
 
-  // Load liked posts
   useEffect(() => {
     if (profileUser?.likedPosts && profileUser.likedPosts.length > 0) {
       const loadLikedPosts = async () => {
         try {
-          const postPromises = profileUser.likedPosts!.map(postId => 
+          const postPromises = profileUser.likedPosts!.map(postId =>
             postService.getPost(postId).catch(() => null)
           );
-          const loadedPosts = await Promise.all(postPromises);
-          setLikedPosts(loadedPosts.filter(p => p !== null));
+          const loaded = await Promise.all(postPromises);
+          setLikedPosts(loaded.filter(Boolean));
         } catch (error) {
           console.error('Error loading liked posts:', error);
         }
@@ -129,157 +98,137 @@ const ProfilePage = () => {
     }
   }, [profileUser]);
 
-  const profile = profileUser;
-  const admin = adminUser || allUsers.find(u => u.isAdmin);
-  const isAdmin = profile?.isAdmin || (admin && profile?.id === admin.id);
-
-  // Get friend user objects
-  const friends = profile.friends
-    .map(friendId => allUsers.find(u => u.id === friendId))
-    .filter((friend): friend is typeof adminUser => friend !== undefined);
-  
-  // User's registered events
-  const registeredEvents = events.filter(event => 
-    currentUser?.registeredEvents?.includes(event.id) || 
-    event.attendees.includes(profile.id)
-  );
-
-  // Dummy event reminders
-  const eventReminders = [
-    {
-      eventId: 'evt-1',
-      eventTitle: 'Wine Tasting Evening',
-      eventDate: new Date('2025-06-25T19:00:00'),
-      reminderTime: new Date('2025-06-25T17:00:00'),
-      notified: false,
-    },
-    {
-      eventId: 'evt-2',
-      eventTitle: 'Yacht Day Trip',
-      eventDate: new Date('2025-07-02T10:00:00'),
-      reminderTime: new Date('2025-07-02T08:00:00'),
-      notified: false,
-    },
-  ];
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(new Date(date));
-  };
-
-  const formatReminderTime = (date: Date) => {
-    const now = new Date();
-    const reminderDate = new Date(date);
-    const diff = reminderDate.getTime() - now.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-    if (diff < 0) return 'Past';
-    if (days > 0) return `In ${days} day${days > 1 ? 's' : ''}`;
-    if (hours > 0) return `In ${hours} hour${hours > 1 ? 's' : ''}`;
-    return 'Soon';
-  };
-
-  // Check if viewing own profile (user is logged in and viewing their own profile)
-  // Allow updates for non-admin profiles only (admin profile is managed separately)
-  const isOwnProfile = currentUser && profile && currentUser.id === profile.id && (!admin || profile.id !== admin.id);
-
   const handleImageClick = () => {
-    if (isOwnProfile && fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    if (isOwnProfile && fileInputRef.current) fileInputRef.current.click();
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !currentUser) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
-      return;
-    }
+    if (!file.type.startsWith('image/')) { alert('Please select an image file'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Image size must be less than 5MB'); return; }
 
     setIsUploadingImage(true);
-
     try {
-      // Convert image to base64 data URL
       const reader = new FileReader();
       reader.onloadend = async () => {
         try {
           const base64Image = reader.result as string;
-          
-          // Update user profile with new image
-          const updatedUser = await updateUser(currentUser.id, {
-            profileImage: base64Image,
-          });
-
-          // Update local state
+          const updatedUser = await updateUser(currentUser.id, { profileImage: base64Image });
           setProfileUser(updatedUser);
-
-          // Reset file input
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-        } catch (error) {
-          console.error('Error uploading image:', error);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        } catch {
           alert('Failed to update profile image. Please try again.');
         } finally {
           setIsUploadingImage(false);
         }
       };
-      reader.onerror = () => {
-        setIsUploadingImage(false);
-        alert('Error reading image file. Please try again.');
-      };
+      reader.onerror = () => { setIsUploadingImage(false); alert('Error reading image file.'); };
       reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Error processing image:', error);
+    } catch {
       setIsUploadingImage(false);
-      alert('Failed to process image. Please try again.');
     }
   };
 
-  // Dummy hero image for profile - Mallorca landscape
-  const profileHeroImage = 'https://www.cunard.com/content/dam/cunard/marketing-assets/cunard-stories/mediterranean/Mediterranean_Beach_1480x832.jpg.image.1480.832.low.jpg';
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit',
+    }).format(new Date(date));
 
-  if (!profile) {
+  if (loading) {
     return (
-      <div className="profile-page">
-        <AppHeader />
-        <div style={{ padding: '2rem', textAlign: 'center' }}>Loading profile...</div>
+      <div className="profile-page profile-loading">
+        <div className="profile-loading-dots">
+          <span></span><span></span><span></span>
+        </div>
       </div>
     );
   }
 
+  if (!profileUser) {
+    return (
+      <div className="profile-page profile-loading">
+        <p style={{ color: 'var(--text-secondary)' }}>Profile not found.</p>
+        <button className="profile-back-btn" onClick={() => navigate('/feed')}>← Back to Feed</button>
+      </div>
+    );
+  }
+
+  const profile = profileUser;
+  const admin = adminUser || allUsers.find(u => u.isAdmin);
+  const isAdmin = profile.isAdmin || (admin && profile.id === admin.id);
+  const isOwnProfile = currentUser && profile && currentUser.id === profile.id && !(admin && profile.id === admin.id);
+
+  const friends = (profile.friends || [])
+    .map(friendId => allUsers.find(u => u.id === friendId))
+    .filter((f): f is User => !!f);
+
+  const registeredEvents = events.filter(event =>
+    currentUser?.registeredEvents?.includes(event.id) ||
+    event.attendees.includes(profile.id)
+  );
+
+  const heroImage = 'https://www.cunard.com/content/dam/cunard/marketing-assets/cunard-stories/mediterranean/Mediterranean_Beach_1480x832.jpg.image.1480.832.low.jpg';
+
   return (
     <div className="profile-page">
-      <AppHeader />
-      
-      {/* Profile Hero Section */}
+      {/* Full-screen hero inspired by profile2 */}
       <div className="profile-hero">
-        <img 
-          src={profileHeroImage}
+        <img
+          src={heroImage}
           alt="Profile background"
           className="profile-hero-image"
         />
-        <div className="profile-hero-overlay"></div>
+        <div className="profile-hero-overlay" />
+
+        {/* Back button */}
+        <button className="profile-back-btn-overlay" onClick={() => navigate(-1)}>
+          ‹
+        </button>
+
+        {/* Top user badge */}
+        <div className="profile-hero-top">
+          <div className="profile-hero-user">
+            {profile.profileImage ? (
+              <img src={profile.profileImage} alt={profile.fullName} className="profile-hero-avatar" />
+            ) : (
+              <div className="profile-hero-avatar profile-hero-avatar-placeholder">
+                {profile.fullName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <p className="profile-hero-username">@{profile.fullName.replace(/\s+/g, '').toLowerCase()}</p>
+              <p className="profile-hero-tagline">
+                {isAdmin ? 'Club Administrator' : 'Rendezvous Member'}
+              </p>
+            </div>
+          </div>
+          {isAdmin && currentUser?.isAdmin && (
+            <button className="profile-console-btn" onClick={() => navigate('/admin-console')}>
+              ⚙
+            </button>
+          )}
+        </div>
+
+        {/* Bottom quote / bio area overlaid on image */}
+        <div className="profile-hero-bottom">
+          <div className="profile-hero-quote">
+            <span className="quote-mark">"</span>
+          </div>
+          <p className="profile-hero-quote-text">
+            {profile.bio || (isAdmin
+              ? 'Building exceptional experiences for our community.'
+              : 'Member of the Rendezvous Social Club.')}
+          </p>
+        </div>
       </div>
 
-      <div className="profile-content">
-        <div className="profile-header">
-          <div className="profile-image-container">
+      {/* White card slides up over hero */}
+      <div className="profile-card">
+        {/* Avatar + name row */}
+        <div className="profile-identity">
+          <div className="profile-avatar-wrap">
             <input
               ref={fileInputRef}
               type="file"
@@ -291,205 +240,167 @@ const ProfilePage = () => {
               <img
                 src={profile.profileImage}
                 alt={profile.fullName}
-                className={`profile-image ${isOwnProfile ? 'editable' : ''}`}
+                className={`profile-avatar-large ${isOwnProfile ? 'editable' : ''}`}
+                onClick={handleImageClick}
               />
             ) : (
-              <div className={`profile-image-placeholder ${isOwnProfile ? 'editable' : ''}`}>
+              <div
+                className={`profile-avatar-large profile-avatar-placeholder ${isOwnProfile ? 'editable' : ''}`}
+                onClick={handleImageClick}
+              >
                 {profile.fullName.charAt(0).toUpperCase()}
               </div>
             )}
             {isOwnProfile && (
               <button
-                className="profile-image-upload-btn"
+                className="profile-camera-btn"
                 onClick={handleImageClick}
                 disabled={isUploadingImage}
-                title="Change profile picture"
               >
-                {isUploadingImage ? (
-                  <span className="upload-spinner">⏳</span>
-                ) : (
-                  <span className="camera-icon">📷</span>
-                )}
+                {isUploadingImage ? '⏳' : '📷'}
               </button>
             )}
           </div>
-          <div className="profile-name-row">
-            <h1 className="profile-name">
+
+          <div className="profile-identity-info">
+            <h1 className="profile-display-name">
               {profile.fullName}
-              {isAdmin && <span className="admin-badge">Admin</span>}
+              {isAdmin && <span className="profile-admin-chip">Admin</span>}
             </h1>
-            <div className="profile-actions">
-              {isAdmin && currentUser?.isAdmin && (
-                <button 
-                  className="profile-action-btn admin-console-btn"
-                  onClick={() => navigate('/admin-console')}
-                  title="Admin Console"
-                >
-                  ⚙️ Console
-                </button>
-              )}
-              <button 
-                className="profile-action-btn feed-btn"
-                onClick={() => navigate('/feed')}
-                title="View Newsfeed"
-              >
-                📰 Feed
-              </button>
-              {!isAdmin && currentUser && currentUser.id !== profile.id && (
-                <button className="add-friend-btn" title="Add Friend">
-                  <img src="/add.png" alt="Add Friend" className="add-friend-icon" />
-                </button>
-              )}
-            </div>
+            {profile.address && (
+              <p className="profile-address">📍 {profile.address}</p>
+            )}
           </div>
-          {profile.address && (
-            <p className="profile-location">📍 {profile.address}</p>
-          )}
-          
-          <div className="profile-stats">
-            <div className="stat-item">
-              <span className="stat-value">{profile.friends.length}</span>
-              <span className="stat-label">Friends</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">{likedPosts.length}</span>
-              <span className="stat-label">Liked</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">{registeredEvents.length}</span>
-              <span className="stat-label">Events</span>
-            </div>
+
+          {/* Add friend / feed action */}
+          <div className="profile-identity-actions">
+            {!isAdmin && currentUser && currentUser.id !== profile.id && (
+              <button className="profile-follow-btn">+ Connect</button>
+            )}
+            <button className="profile-feed-btn" onClick={() => navigate('/feed')}>
+              Feed
+            </button>
           </div>
         </div>
 
+        {/* Stats row */}
+        <div className="profile-stats-row">
+          <div className="profile-stat">
+            <span className="profile-stat-val">{friends.length}</span>
+            <span className="profile-stat-lbl">Connections</span>
+          </div>
+          <div className="profile-stat-divider" />
+          <div className="profile-stat">
+            <span className="profile-stat-val">{likedPosts.length}</span>
+            <span className="profile-stat-lbl">Liked</span>
+          </div>
+          <div className="profile-stat-divider" />
+          <div className="profile-stat">
+            <span className="profile-stat-val">{registeredEvents.length}</span>
+            <span className="profile-stat-lbl">Events</span>
+          </div>
+        </div>
+
+        {/* Tabs */}
         <div className="profile-tabs">
-          <button
-            className={`tab-button ${activeTab === 'about' ? 'active' : ''}`}
-            onClick={() => setActiveTab('about')}
-            title="About"
-          >
-            <img src="/info.png" alt="About" className="tab-icon" />
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
-            onClick={() => setActiveTab('friends')}
-            title={`Friends (${friends.length})`}
-          >
-            <img src="/friends.png" alt="Friends" className="tab-icon" />
-            <span className="friends-count">{friends.length}</span>
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'posts' ? 'active' : ''}`}
-            onClick={() => setActiveTab('posts')}
-            title="Liked Posts"
-          >
-            <img src="/heart.png" alt="Liked Posts" className="tab-icon" />
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
-            onClick={() => setActiveTab('events')}
-            title="My Events"
-          >
-            <img src="/calendar-check.png" alt="My Events" className="tab-icon" />
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'reminders' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reminders')}
-            title="Reminders"
-          >
-            <img src="/bell.png" alt="Reminders" className="tab-icon" />
-          </button>
+          {(['about', 'friends', 'posts', 'events'] as const).map(tab => (
+            <button
+              key={tab}
+              className={`profile-tab${activeTab === tab ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === 'about' && 'About'}
+              {tab === 'friends' && `Connections${friends.length ? ` (${friends.length})` : ''}`}
+              {tab === 'posts' && 'Liked'}
+              {tab === 'events' && 'Events'}
+            </button>
+          ))}
         </div>
 
+        {/* Tab content */}
         <div className="profile-tab-content">
+
+          {/* ABOUT */}
           {activeTab === 'about' && (
-            <div className="profile-details">
-              <div className="detail-section">
-                <h2 className="section-title">Contact Information</h2>
-                <div className="detail-item">
-                  <span className="detail-label">Email</span>
-                  <span className="detail-value">{profile.email}</span>
+            <div className="profile-section-list">
+              <div className="profile-info-card">
+                <h3 className="profile-info-title">Contact</h3>
+                <div className="profile-info-row">
+                  <span className="profile-info-label">Email</span>
+                  <span className="profile-info-value">{profile.email}</span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Phone</span>
-                  <span className="detail-value">{profile.phone}</span>
-                </div>
+                {profile.phone && (
+                  <div className="profile-info-row">
+                    <span className="profile-info-label">Phone</span>
+                    <span className="profile-info-value">{profile.phone}</span>
+                  </div>
+                )}
               </div>
 
-              {profile.socialLinks && Object.keys(profile.socialLinks).length > 0 && (
-                <div className="detail-section">
-                  <h2 className="section-title">Social Links</h2>
+              {profile.socialLinks && Object.values(profile.socialLinks).some(Boolean) && (
+                <div className="profile-info-card">
+                  <h3 className="profile-info-title">Social</h3>
                   {profile.socialLinks.instagram && (
-                    <div className="detail-item">
-                      <span className="detail-label">Instagram</span>
-                      <span className="detail-value">{profile.socialLinks.instagram}</span>
+                    <div className="profile-info-row">
+                      <span className="profile-info-label">Instagram</span>
+                      <span className="profile-info-value">{profile.socialLinks.instagram}</span>
                     </div>
                   )}
                   {profile.socialLinks.facebook && (
-                    <div className="detail-item">
-                      <span className="detail-label">Facebook</span>
-                      <span className="detail-value">{profile.socialLinks.facebook}</span>
+                    <div className="profile-info-row">
+                      <span className="profile-info-label">Facebook</span>
+                      <span className="profile-info-value">{profile.socialLinks.facebook}</span>
                     </div>
                   )}
                   {profile.socialLinks.twitter && (
-                    <div className="detail-item">
-                      <span className="detail-label">Twitter</span>
-                      <span className="detail-value">{profile.socialLinks.twitter}</span>
+                    <div className="profile-info-row">
+                      <span className="profile-info-label">Twitter</span>
+                      <span className="profile-info-value">{profile.socialLinks.twitter}</span>
                     </div>
                   )}
                   {profile.socialLinks.linkedin && (
-                    <div className="detail-item">
-                      <span className="detail-label">LinkedIn</span>
-                      <span className="detail-value">{profile.socialLinks.linkedin}</span>
+                    <div className="profile-info-row">
+                      <span className="profile-info-label">LinkedIn</span>
+                      <span className="profile-info-value">{profile.socialLinks.linkedin}</span>
                     </div>
                   )}
                 </div>
               )}
 
               {(profile.bio || isAdmin) && (
-                <div className="detail-section">
-                  <h2 className="section-title">About</h2>
-                  <p className="profile-bio">
-                    {profile.bio || (isAdmin && `Welcome to Rendezvous Social Club! As the administrator, I'm here to ensure
-                    all members have an exceptional experience. Feel free to reach out with any
-                    questions, suggestions, or concerns. Let's make this community thrive together!`)}
+                <div className="profile-info-card">
+                  <h3 className="profile-info-title">Bio</h3>
+                  <p className="profile-bio-text">
+                    {profile.bio || (isAdmin
+                      ? `Welcome to Rendezvous Social Club! As the administrator, I'm here to ensure all members have an exceptional experience. Feel free to reach out with any questions or suggestions.`
+                      : '')}
                   </p>
                 </div>
               )}
             </div>
           )}
 
+          {/* FRIENDS */}
           {activeTab === 'friends' && (
-            <div className="friends-section">
-              <h2 className="section-title">Friends ({friends.length})</h2>
+            <div>
               {friends.length === 0 ? (
-                <div className="empty-state">
-                  <span className="empty-icon">👥</span>
-                  <p>No friends yet</p>
+                <div className="profile-empty">
+                  <span>👥</span>
+                  <p>No connections yet</p>
                 </div>
               ) : (
-                <div className="friends-grid">
-                  {friends.map((friend) => (
-                    <div 
-                      key={friend.id} 
-                      className="friend-card"
-                      onClick={() => handleFriendClick(friend.id)}
-                    >
+                <div className="profile-friends-grid">
+                  {friends.map(friend => (
+                    <div key={friend.id} className="profile-friend-card" onClick={() => handleFriendClick(friend.id)}>
                       {friend.profileImage ? (
-                        <img
-                          src={friend.profileImage}
-                          alt={friend.fullName}
-                          className="friend-avatar"
-                        />
+                        <img src={friend.profileImage} alt={friend.fullName} className="profile-friend-avatar" />
                       ) : (
-                        <div className="friend-avatar-placeholder">
+                        <div className="profile-friend-avatar profile-friend-avatar-placeholder">
                           {friend.fullName.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <div className="friend-name">{friend.fullName}</div>
-                      {friend.isAdmin && (
-                        <span className="friend-admin-badge">Admin</span>
-                      )}
+                      <span className="profile-friend-name">{friend.fullName}</span>
+                      {friend.isAdmin && <span className="profile-friend-admin">Admin</span>}
                     </div>
                   ))}
                 </div>
@@ -497,45 +408,35 @@ const ProfilePage = () => {
             </div>
           )}
 
+          {/* LIKED POSTS */}
           {activeTab === 'posts' && (
-            <div className="liked-posts-section">
-              <h2 className="section-title">Liked Posts ({likedPosts.length})</h2>
+            <div>
               {likedPosts.length === 0 ? (
-                <div className="empty-state">
-                  <span className="empty-icon">❤️</span>
+                <div className="profile-empty">
+                  <span>❤️</span>
                   <p>No liked posts yet</p>
                 </div>
               ) : (
-                <div className="posts-grid">
-                  {likedPosts.map((post) => (
-                    <div key={post.id} className="post-card-mini">
+                <div className="profile-posts-list">
+                  {likedPosts.map(post => (
+                    <div key={post.id} className="profile-post-card">
                       {post.image && (
-                        <div className={`post-mini-image ${post.authorId === 'admin-1' ? 'has-admin-watermark' : ''}`}>
+                        <div className="profile-post-image">
                           <img src={post.image} alt="Post" />
                         </div>
                       )}
-                      <div className="post-mini-content">
-                        <div className="post-mini-author">
+                      <div className="profile-post-body">
+                        <div className="profile-post-author" onClick={() => handleProfileClick(post.authorId)}>
                           {post.authorImage ? (
-                            <img 
-                              src={post.authorImage} 
-                              alt={post.authorName} 
-                              className={`mini-avatar ${post.authorId === 'admin-1' ? 'clickable' : ''}`}
-                              onClick={() => handleProfileClick(post.authorId)}
-                              style={post.authorId === 'admin-1' ? { cursor: 'pointer' } : {}}
-                            />
+                            <img src={post.authorImage} alt={post.authorName} className="profile-post-avatar" />
                           ) : (
-                            <div 
-                              className={`mini-avatar-placeholder ${post.authorId === 'admin-1' ? 'clickable' : ''}`}
-                              onClick={() => post.authorId === 'admin-1' && handleProfileClick(post.authorId)}
-                              style={post.authorId === 'admin-1' ? { cursor: 'pointer' } : {}}
-                            >
-                              {post.authorName.charAt(0).toUpperCase()}
+                            <div className="profile-post-avatar profile-post-avatar-placeholder">
+                              {post.authorName.charAt(0)}
                             </div>
                           )}
                           <span>{post.authorName}</span>
                         </div>
-                        <p className="post-mini-text">{post.content.substring(0, 100)}...</p>
+                        <p className="profile-post-text">{post.content.substring(0, 100)}…</p>
                       </div>
                     </div>
                   ))}
@@ -544,30 +445,28 @@ const ProfilePage = () => {
             </div>
           )}
 
+          {/* EVENTS */}
           {activeTab === 'events' && (
-            <div className="events-section">
-              <h2 className="section-title">Registered Events ({registeredEvents.length})</h2>
+            <div>
               {registeredEvents.length === 0 ? (
-                <div className="empty-state">
-                  <span className="empty-icon">📅</span>
+                <div className="profile-empty">
+                  <span>📅</span>
                   <p>No registered events yet</p>
                 </div>
               ) : (
-                <div className="events-list">
-                  {registeredEvents.map((event) => (
-                    <div key={event.id} className="event-card-mini">
+                <div className="profile-events-list">
+                  {registeredEvents.map(event => (
+                    <div key={event.id} className="profile-event-card">
                       {event.image && (
-                        <div className="event-mini-image">
+                        <div className="profile-event-image">
                           <img src={event.image} alt={event.title} />
                         </div>
                       )}
-                      <div className="event-mini-content">
-                        <h3 className="event-mini-title">{event.title}</h3>
-                        <p className="event-mini-date">📅 {formatDate(event.date)}</p>
-                        {event.location && (
-                          <p className="event-mini-location">📍 {event.location}</p>
-                        )}
-                        <span className="event-status-badge">Registered</span>
+                      <div className="profile-event-body">
+                        <h4 className="profile-event-title">{event.title}</h4>
+                        <p className="profile-event-date">📅 {formatDate(event.date)}</p>
+                        {event.location && <p className="profile-event-location">📍 {event.location}</p>}
+                        <span className="profile-event-badge">Registered</span>
                       </div>
                     </div>
                   ))}
@@ -576,44 +475,6 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {activeTab === 'reminders' && (
-            <div className="reminders-section">
-              <h2 className="section-title">Event Reminders ({eventReminders.length})</h2>
-              <p className="reminders-subtitle">
-                You'll receive notifications before your registered events
-              </p>
-              {eventReminders.length === 0 ? (
-                <div className="empty-state">
-                  <span className="empty-icon">⏰</span>
-                  <p>No reminders set</p>
-                </div>
-              ) : (
-                <div className="reminders-list">
-                  {eventReminders.map((reminder, index) => (
-                    <div key={index} className="reminder-card">
-                      <div className="reminder-icon">⏰</div>
-                      <div className="reminder-content">
-                        <h3 className="reminder-title">{reminder.eventTitle}</h3>
-                        <div className="reminder-details">
-                          <p className="reminder-event-date">
-                            Event: {formatDate(reminder.eventDate)}
-                          </p>
-                          <p className="reminder-time">
-                            Reminder: {formatDate(reminder.reminderTime)}
-                          </p>
-                        </div>
-                        <div className="reminder-status">
-                          <span className={`reminder-badge ${reminder.notified ? 'notified' : 'pending'}`}>
-                            {reminder.notified ? '✓ Notified' : formatReminderTime(reminder.reminderTime)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

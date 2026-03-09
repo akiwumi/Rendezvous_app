@@ -39,15 +39,22 @@
   height: 100%;
   background: linear-gradient(
     to bottom,
-    rgba(85, 107, 47, 0.7),
-    rgba(61, 79, 33, 0.8)
+    rgba(85, 107, 47, 0.65),
+    rgba(61, 79, 33, 0.85)
   );
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding-top: 20%;
-  padding-bottom: 10%;
+  justify-content: center;
+  gap: 0;
+}
+
+.splash-logo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
 }
 
 .splash-title {
@@ -55,64 +62,54 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-gold);
   margin-bottom: var(--spacing-sm);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 2px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
+  letter-spacing: 3px;
 }
 
 .splash-subtitle {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-medium);
   color: var(--text-inverse);
-  letter-spacing: 4px;
+  letter-spacing: 6px;
   text-transform: uppercase;
-  margin-bottom: var(--spacing-3xl);
+  opacity: 0.9;
 }
 
-.splash-actions {
+.splash-loading {
+  padding-bottom: 60px;
+}
+
+.splash-dots {
   display: flex;
-  flex-direction: row;
-  gap: var(--spacing-md);
-  width: 100%;
-  max-width: 400px;
-  margin-top: auto;
-  padding-bottom: var(--spacing-3xl);
+  gap: 10px;
+  align-items: center;
   justify-content: center;
 }
 
-.splash-button {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-  min-height: 36px;
-  flex: 1;
-  max-width: 150px;
-}
-
-.login-button {
+.splash-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   background-color: var(--color-gold);
-  color: var(--text-primary);
-  border-color: var(--color-gold);
+  opacity: 0.4;
+  animation: splash-pulse 1.2s infinite ease-in-out;
 }
 
-.login-button:hover {
-  background-color: var(--color-gold-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.splash-dots span:nth-child(2) {
+  animation-delay: 0.2s;
 }
 
-.register-button {
-  background-color: transparent;
-  color: var(--text-inverse);
-  border-color: var(--text-inverse);
+.splash-dots span:nth-child(3) {
+  animation-delay: 0.4s;
 }
 
-.register-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+@keyframes splash-pulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
-

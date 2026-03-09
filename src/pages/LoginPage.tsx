@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import AppHeader from '../components/AppHeader';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { loginUser } = useApp();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,124 +19,82 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    // Show loading state
-    const submitButton = e.currentTarget.querySelector('button[type="submit"]') as HTMLButtonElement;
-    const originalText = submitButton?.textContent || 'Login';
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent = 'Logging in...';
-    }
-    
+    setIsLoading(true);
     try {
       const email = formData.email.trim().toLowerCase();
-      const password = formData.password;
-      
-      console.log('Login attempt:', { email, passwordLength: password.length });
-      
-      const success = await loginUser(email, password);
-      
+      const success = await loginUser(email, formData.password);
       if (success) {
-        console.log('Login successful, navigating to feed...');
-        // Navigate to feed for Eugene (admin), announcements for others
-        const userEmail = email;
-        if (userEmail === 'akiwumi@gmail.com') {
-          navigate('/feed');
-        } else {
-          navigate('/announcements');
-        }
+        navigate('/feed', { replace: true });
       } else {
-        console.error('Login returned false');
-        setError('Invalid email or password. Please check your credentials and try again.');
+        setError('Invalid email or password. Please try again.');
       }
-    } catch (error: any) {
-      console.error('Login error caught:', error);
-      // Show more detailed error messages
-      let errorMessage = error.message || 'Login failed. Please try again.';
-      
-      // Preserve newlines in error messages
-      if (errorMessage.includes('\n')) {
-        errorMessage = errorMessage.split('\n').map((line: string, idx: number) => (
-          <span key={idx}>{line}<br /></span>
-        ));
-      }
-      
-      setError(errorMessage);
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
-      // Restore button state
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = originalText;
-      }
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="login-page">
-      <AppHeader />
-      <div className="login-content">
-        <h1 className="page-title">Welcome Back</h1>
-        <p className="page-subtitle">Login to access Rendezvous Social Club</p>
+      {/* Full-page background */}
+      <img src="/splash-screen.png" alt="" className="login-bg-image" />
+      <div className="login-bg-overlay" />
+
+      {/* Form card anchored to bottom */}
+      <div className="login-card">
+        <h2 className="login-heading">Welcome Back</h2>
+        <p className="login-subheading">Sign in to your account</p>
 
         <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label className="form-label">
-              Email Address
-            </label>
+          <div className="login-form-group">
+            <label className="login-label">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`form-input ${error ? 'error' : ''}`}
+              className={`login-input${error ? ' error' : ''}`}
               placeholder="your.email@example.com"
               required
+              autoComplete="email"
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">
-              Password
-            </label>
+          <div className="login-form-group">
+            <label className="login-label">Password</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className={`form-input ${error ? 'error' : ''}`}
+              className={`login-input${error ? ' error' : ''}`}
               placeholder="Enter your password"
               required
+              autoComplete="current-password"
             />
           </div>
 
-          {error && (
-            <div className="error-message" style={{ whiteSpace: 'pre-line' }}>
-              {typeof error === 'string' ? error : error}
-            </div>
-          )}
+          {error && <div className="login-error">{error}</div>}
 
-          <button
-            type="submit"
-            className="submit-button"
-          >
-            Login
+          <button type="submit" className="login-submit-btn" disabled={isLoading}>
+            {isLoading ? 'Signing in…' : 'Sign In'}
           </button>
-
-          <div className="register-link">
-            <p>Don't have an account?</p>
-            <button
-              type="button"
-              className="link-button"
-              onClick={() => navigate('/register')}
-            >
-              Register Here
-            </button>
-          </div>
         </form>
+
+        <div className="login-register-row">
+          <span>Don't have an account?</span>
+          <button
+            type="button"
+            className="login-register-link"
+            onClick={() => navigate('/register')}
+          >
+            Register
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
 export default LoginPage;
-

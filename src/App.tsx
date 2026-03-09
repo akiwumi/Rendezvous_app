@@ -14,11 +14,12 @@ import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminProfilePage from './pages/AdminProfilePage';
 import AdminConsolePage from './pages/AdminConsolePage';
+import AdminPage from './pages/AdminPage';
 import './App.css';
 
 const AppContent = () => {
   const location = useLocation();
-  const hideNav = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/admin-console';
+  const hideNav = ['/', '/login', '/register', '/admin-console', '/admin'].includes(location.pathname);
 
   return (
     <>
@@ -36,6 +37,7 @@ const AppContent = () => {
         <Route path="/profile/:userId" element={<ProfilePage />} />
         <Route path="/admin-profile" element={<AdminProfilePage />} />
         <Route path="/admin-console" element={<AdminConsolePage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!hideNav && <SearchBar />}

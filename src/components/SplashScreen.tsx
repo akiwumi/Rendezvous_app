@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import './SplashScreen.css';
@@ -6,57 +6,54 @@ import './SplashScreen.css';
 const SplashScreen = () => {
   const navigate = useNavigate();
   const { currentUser, loading } = useApp();
+  const [animateOut, setAnimateOut] = useState(false);
 
-  // Auto-redirect if user is already logged in
   useEffect(() => {
+    // If already logged in, skip straight to feed
     if (!loading && currentUser) {
       navigate('/feed', { replace: true });
+      return;
     }
-  }, [currentUser, loading, navigate]);
 
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="splash-screen">
-        <div className="splash-content">
-          <div className="splash-overlay">
-            <h1 className="splash-title">Rendezvous</h1>
-            <p className="splash-subtitle">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    if (!loading) {
+      // Show splash for 4 seconds, then fade out and navigate to login
+      const fadeTimer = setTimeout(() => {
+        setAnimateOut(true);
+      }, 3500);
+
+      const navTimer = setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 4000);
+
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(navTimer);
+      };
+    }
+  }, [loading, currentUser, navigate]);
 
   return (
-    <div className="splash-screen">
+    <div className={`splash-screen${animateOut ? ' fade-out' : ''}`}>
       <div className="splash-content">
-        <img 
-          src="/splash-screen.jpg" 
-          alt="Rendezvous Social Club" 
+        <img
+          src="/splash-screen.jpg"
+          alt="Rendezvous Social Club"
           className="splash-image"
           onError={(e) => {
-            // Fallback if image doesn't exist
             (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
         <div className="splash-overlay">
-          <h1 className="splash-title">Rendezvous</h1>
-          <p className="splash-subtitle">Social Club</p>
-          
-          <div className="splash-actions">
-            <button 
-              className="splash-button login-button"
-              onClick={() => navigate('/login')}
-            >
-              Login
-            </button>
-            <button 
-              className="splash-button register-button"
-              onClick={() => navigate('/register')}
-            >
-              Register
-            </button>
+          <div className="splash-logo-area">
+            <h1 className="splash-title">Rendezvous</h1>
+            <p className="splash-subtitle">Social Club</p>
+          </div>
+          <div className="splash-loading">
+            <div className="splash-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
           </div>
         </div>
       </div>
