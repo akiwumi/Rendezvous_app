@@ -28,7 +28,9 @@ const ProfilePage = () => {
     linkedin: '',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfileClick = (authorId: string) => {
     const admin = adminUser || allUsers.find(u => u.isAdmin);
@@ -112,6 +114,36 @@ const ProfilePage = () => {
 
   const handleImageClick = () => {
     if (isOwnProfile && fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleCoverClick = () => {
+    if (isOwnProfile && coverInputRef.current) coverInputRef.current.click();
+  };
+
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (JPEG, PNG, GIF, or WebP).');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image must be under 10MB.');
+      return;
+    }
+    setIsUploadingCover(true);
+    try {
+      const url = await storageService.uploadCover(file, currentUser.id);
+      await updateUser(currentUser.id, { coverImage: url });
+      setProfileUser(prev => prev ? { ...prev, coverImage: url } : prev);
+      if (coverInputRef.current) coverInputRef.current.value = '';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      console.error('Cover upload error:', err);
+      alert(`Failed to upload cover: ${msg}. Run the storage migration in Supabase (see STORAGE.md).`);
+    } finally {
+      setIsUploadingCover(false);
+    }
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,9 +275,33 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page">
-      {/* Hero - gradient background, no hardcoded image */}
-      <div className="profile-hero profile-hero-gradient">
+      {/* Hero - cover image or gradient */}
+      <div
+        className={`profile-hero ${profile.coverImage ? '' : 'profile-hero-gradient'}`}
+        onClick={isOwnProfile ? handleCoverClick : undefined}
+      >
+        {profile.coverImage && (
+          <img src={profile.coverImage} alt="" className="profile-hero-image" aria-hidden />
+        )}
         <div className="profile-hero-overlay" />
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleCoverChange}
+          style={{ display: 'none' }}
+        />
+        {isOwnProfile && (
+          <button
+            className="profile-cover-edit-btn"
+            onClick={(e) => { e.stopPropagation(); handleCoverClick(); }}
+            disabled={isUploadingCover}
+            title="Change cover photo"
+            aria-label="Change cover photo"
+          >
+            {isUploadingCover ? '⏳' : '📷 Change cover'}
+          </button>
+        )}
 
         {/* Back button */}
         <button className="profile-back-btn-overlay" onClick={() => navigate(-1)}>

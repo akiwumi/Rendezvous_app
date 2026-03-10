@@ -17,6 +17,7 @@ const mapUser = (row: any): User => ({
   address: row.address || '',
   bio: row.bio || '',
   profileImage: row.profile_image || '',
+  coverImage: row.cover_image || '',
   socialLinks: row.social_links || {},
   friends: row.friends || [],
   isAdmin: row.is_admin || false,
@@ -168,6 +169,7 @@ export const userService = {
         address: userData.address || '',
         bio: userData.bio || '',
         profile_image: userData.profileImage || '',
+        cover_image: userData.coverImage || '',
         social_links: userData.socialLinks || {},
         friends: userData.friends || [],
         is_admin: userData.isAdmin || false,
@@ -217,6 +219,7 @@ export const userService = {
     if (updates.address !== undefined) dbUpdates.address = updates.address;
     if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
     if (updates.profileImage !== undefined) dbUpdates.profile_image = updates.profileImage;
+    if (updates.coverImage !== undefined) dbUpdates.cover_image = updates.coverImage;
     if (updates.socialLinks !== undefined) dbUpdates.social_links = updates.socialLinks;
     if (updates.friends !== undefined) dbUpdates.friends = updates.friends;
     if (updates.isAdmin !== undefined) dbUpdates.is_admin = updates.isAdmin;
@@ -850,6 +853,11 @@ export const storageService = {
   async uploadAvatar(file: File, userId: string): Promise<string> {
     const ext = file.name.split('.').pop();
     return uploadFile(BUCKETS.avatars, `${userId}/avatar.${ext}`, file);
+  },
+
+  async uploadCover(file: File, userId: string): Promise<string> {
+    const ext = file.name.split('.').pop();
+    return uploadFile(BUCKETS.avatars, `${userId}/cover.${ext}`, file);
   },
 
   async uploadPostMedia(file: File, userId: string): Promise<string> {

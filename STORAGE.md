@@ -30,11 +30,19 @@ Profile photos and post images are stored in Supabase Storage. You need to creat
 4. Click **Run** (or press Ctrl+Enter)
 5. You should see "Success. No rows returned" or similar—that's correct
 
-This creates three storage areas:
+### 1.3 Add cover image column (for profile header)
 
-- **avatars** – profile pictures (max 10 MB each)
+1. Open the file `supabase/migrations/20250310120000_add_cover_image.sql`
+2. Copy all of its contents
+3. In SQL Editor, **+ New query**, paste, and **Run**
+
+### 1.4 What you created
+
+- **avatars** – profile pictures and profile header images (max 10 MB each)
 - **post-media** – images/videos in posts (max 200 MB)
 - **chat-attachments** – files in chat (max 50 MB)
+
+**No separate storage bucket for the header** – cover images use the same `avatars` bucket.
 
 ---
 
@@ -142,7 +150,8 @@ Replace the values with:
 
 ## Quick checklist
 
-- [ ] Ran storage migration in SQL Editor (Step 1)
+- [ ] Ran storage buckets migration in SQL Editor (Step 1.2)
+- [ ] Ran cover image column migration (Step 1.3)
 - [ ] Set `is_admin = true` for your user (Step 2)
 - [ ] `.env` has correct `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (Step 3)
 - [ ] Restarted dev server after changing `.env` (`npm run dev`)

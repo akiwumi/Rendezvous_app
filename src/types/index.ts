@@ -13,6 +13,7 @@ export interface User {
     linkedin?: string;
   };
   profileImage?: string;
+  coverImage?: string; // Profile header/banner image URL
   friends: string[]; // User IDs
   isAdmin?: boolean;
   likedPosts?: string[]; // Post IDs

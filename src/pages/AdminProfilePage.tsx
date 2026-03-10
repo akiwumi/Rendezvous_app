@@ -189,8 +189,11 @@ const AdminProfilePage = () => {
     <div className="admin-profile-page">
       <AppHeader />
       
-      {/* Hero Section - gradient, no hardcoded image */}
-      <div className="admin-hero admin-hero-gradient">
+      {/* Hero Section - cover image or gradient */}
+      <div className={`admin-hero ${adminUser?.coverImage ? '' : 'admin-hero-gradient'}`}>
+        {adminUser?.coverImage && (
+          <img src={adminUser.coverImage} alt="" className="admin-hero-image" aria-hidden />
+        )}
         <div className="admin-hero-overlay"></div>
         <div className="admin-hero-content">
           <span className="admin-hero-badge">Administrator</span>
