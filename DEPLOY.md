@@ -48,6 +48,7 @@ create table public.users (
   bio text,
   profile_image text,
   is_admin boolean default false,
+  social_links jsonb default '{}',
   friends text[] default '{}',
   liked_posts text[] default '{}',
   registered_events text[] default '{}',
@@ -210,6 +211,18 @@ create policy "App write" on public.invitation_codes for all using (true);
 ```
 
 > **Note:** These are open policies for now. Once the app is stable you can tighten these so users can only edit their own data.
+
+### Step 4a — Disable email confirmation (important)
+
+By default Supabase requires users to confirm their email before they can log in. For a private invite-only club, disable this:
+
+1. In Supabase, go to **Authentication → Providers → Email**
+2. Toggle **"Confirm email"** OFF
+3. Click **Save**
+
+Without this step, newly registered members will be stuck on the login page.
+
+---
 
 ### Step 5 — Create your first admin user in Supabase
 
