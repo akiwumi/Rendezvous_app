@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Announcement, Advertisement, Post } from '../types';
-import { announcementService, advertisementService, postService } from '../services/localDataService';
+import { announcementService, advertisementService, postService, userService } from '../services/localDataService';
 import Stories from '../components/Stories';
 import AdvertCard from '../components/AdvertCard';
 import PostInteractions from '../components/PostInteractions';
@@ -19,6 +19,14 @@ const AnnouncementsPage = () => {
   const { announcements, setAnnouncements, posts, setPosts, currentUser, unreadNotificationsCount, logoutUser, updateUser } = useApp();
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [activeAds, setActiveAds] = useState<Advertisement[]>([]);
+  const [adminUser, setAdminUser] = useState<{ profileImage?: string; fullName: string; address?: string } | null>(null);
+
+  useEffect(() => {
+    userService.getAllUsers().then(users => {
+      const admin = users.find(u => u.isAdmin);
+      if (admin) setAdminUser(admin);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -154,6 +162,7 @@ const AnnouncementsPage = () => {
                 <AnnouncementCard
                   key={item.announcement.id}
                   announcement={item.announcement}
+                  adminUser={adminUser}
                   liked={!!liked[item.announcement.id]}
                   onLike={() => toggleLike(item.announcement.id)}
                   formatTimeAgo={formatTimeAgo}
@@ -183,20 +192,25 @@ const AnnouncementsPage = () => {
 
 interface AnnouncementCardProps {
   announcement: Announcement;
+  adminUser: { profileImage?: string; fullName: string; address?: string } | null;
   liked: boolean;
   onLike: () => void;
   formatTimeAgo: (date: Date) => string;
 }
 
-const AnnouncementCard = ({ announcement, liked, onLike, formatTimeAgo }: AnnouncementCardProps) => (
+const AnnouncementCard = ({ announcement, adminUser, liked, onLike, formatTimeAgo }: AnnouncementCardProps) => (
   <div className="feed-card">
     <div className="feed-card-author">
       <div className="feed-author-avatar">
-        <img src="/penilla-logo-3.png" alt="Admin" />
+        {adminUser?.profileImage ? (
+          <img src={adminUser.profileImage} alt={adminUser.fullName} />
+        ) : (
+          <div className="feed-author-avatar-placeholder">{adminUser?.fullName?.charAt(0) || 'A'}</div>
+        )}
       </div>
       <div className="feed-author-info">
-        <span className="feed-author-name">Rendezvous SC</span>
-        <span className="feed-author-location">Mallorca, Spain</span>
+        <span className="feed-author-name">{adminUser?.fullName || 'Admin'}</span>
+        {adminUser?.address && <span className="feed-author-location">{adminUser.address}</span>}
       </div>
       <span className="feed-card-type-badge">📢</span>
     </div>

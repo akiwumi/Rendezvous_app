@@ -115,7 +115,15 @@ const FeedPage = () => {
         <div className="feed-content">
           {/* Feed Header with Profile and CTA */}
           <div className="feed-header-modern">
-            <div className="feed-header-profile">
+            <div
+              className="feed-header-profile"
+              onClick={() => navigate('/profile')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/profile')}
+              style={{ cursor: 'pointer' }}
+              aria-label="Go to profile"
+            >
               {currentUser.profileImage ? (
                 <img src={currentUser.profileImage} alt={currentUser.fullName} className="feed-header-avatar" />
               ) : (
@@ -324,7 +332,7 @@ const FeedPage = () => {
                   const icsContent = [
                     'BEGIN:VCALENDAR',
                     'VERSION:2.0',
-                    'PRODID:-//Rendezvous Social Club//EN',
+                    'PRODID:-//Rendezvous//EN',
                     'BEGIN:VEVENT',
                     `DTSTART:${formatICSDate(startDate)}`,
                     `DTEND:${formatICSDate(endDate)}`,
@@ -436,7 +444,7 @@ const FeedPage = () => {
                     const icsContent = [
                       'BEGIN:VCALENDAR',
                       'VERSION:2.0',
-                      'PRODID:-//Rendezvous Social Club//EN',
+                      'PRODID:-//Rendezvous//EN',
                       'BEGIN:VEVENT',
                       `DTSTART:${formatICSDate(startDate)}`,
                       `DTEND:${formatICSDate(endDate)}`,

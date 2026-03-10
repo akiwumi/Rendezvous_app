@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminProfile } from '../data/dummyData';
 import { useApp } from '../context/AppContext';
 import { userService, postService, invitationService } from '../services/localDataService';
 import { User } from '../types';
@@ -64,7 +63,8 @@ const AdminProfilePage = () => {
         
         const membersConnected = nonAdminUsers.length;
         
-        const yearsActive = Math.max(1, Math.floor((new Date().getTime() - adminProfile.memberSince.getTime()) / (1000 * 60 * 60 * 24 * 365)));
+        const memberSince = actualAdminUser.createdAt ? new Date(actualAdminUser.createdAt) : new Date();
+        const yearsActive = Math.max(1, Math.floor((new Date().getTime() - memberSince.getTime()) / (1000 * 60 * 60 * 24 * 365)));
         
         // Extract unique countries from user addresses
         const allUserAddresses = [actualAdminUser.address, ...nonAdminUsers.map(u => u.address)].filter(Boolean);
@@ -183,33 +183,17 @@ const AdminProfilePage = () => {
     }).format(new Date(date));
   };
 
-  // Hero image - beautiful beach
-  const heroImage = '/mallorca-beach.jpg';
-
-  // Gallery images
-  const galleryImages = [
-    { id: 1, src: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600', caption: 'Summer Gala 2024' },
-    { id: 2, src: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600', caption: 'Yacht Day Trip' },
-    { id: 3, src: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600', caption: 'Wine Tasting Evening' },
-    { id: 4, src: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600', caption: 'Art Exhibition Opening' },
-    { id: 5, src: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600', caption: 'Anniversary Gala' },
-    { id: 6, src: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600', caption: 'Club Facilities' },
-  ];
+  const memberSince = adminUser?.createdAt ? new Date(adminUser.createdAt) : null;
 
   return (
     <div className="admin-profile-page">
       <AppHeader />
       
-      {/* Hero Section */}
-      <div className="admin-hero">
-        <img 
-          src={heroImage}
-          alt="Mallorca beach"
-          className="admin-hero-image"
-        />
+      {/* Hero Section - gradient, no hardcoded image */}
+      <div className="admin-hero admin-hero-gradient">
         <div className="admin-hero-overlay"></div>
         <div className="admin-hero-content">
-          <span className="admin-hero-badge">Club Administrator</span>
+          <span className="admin-hero-badge">Administrator</span>
         </div>
       </div>
 
@@ -221,11 +205,17 @@ const AdminProfilePage = () => {
         {/* Profile Header */}
         <div className="admin-profile-header">
           <div className="admin-avatar-container">
-            <img
-              src={adminUser.profileImage || '/pebbles.jpg'}
-              alt={adminUser.fullName}
-              className="admin-avatar"
-            />
+            {adminUser.profileImage ? (
+              <img
+                src={adminUser.profileImage}
+                alt={adminUser.fullName}
+                className="admin-avatar"
+              />
+            ) : (
+              <div className="admin-avatar admin-avatar-placeholder">
+                {adminUser.fullName.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="admin-verified-badge">✓</div>
           </div>
           
@@ -248,14 +238,16 @@ const AdminProfilePage = () => {
               </button>
             </div>
           </div>
-          <p className="admin-role">{adminProfile.role}</p>
-          <p className="admin-location">📍 {adminUser.address}</p>
+          <p className="admin-role">Administrator</p>
+          {adminUser.address && <p className="admin-location">📍 {adminUser.address}</p>}
           
-          <div className="admin-quote">
-            <span className="quote-mark">"</span>
-            {adminProfile.quote.replace(/"/g, '')}
-            <span className="quote-mark">"</span>
-          </div>
+          {adminUser.bio && (
+            <div className="admin-quote">
+              <span className="quote-mark">"</span>
+              {adminUser.bio.replace(/"/g, '')}
+              <span className="quote-mark">"</span>
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="admin-stats-grid">
@@ -303,6 +295,13 @@ const AdminProfilePage = () => {
 
           {/* Action Buttons */}
           <div className="admin-profile-action-buttons">
+            <button 
+              className="admin-action-btn edit-profile-btn"
+              onClick={() => navigate('/profile')}
+              title="Edit your profile"
+            >
+              ✏️ Edit Profile
+            </button>
             <button 
               className="create-post-button"
               onClick={() => navigate('/admin/create-post')}
@@ -377,65 +376,45 @@ const AdminProfilePage = () => {
         <div className="admin-tab-content">
           {activeTab === 'about' && (
             <div className="about-section">
-              {/* Bio */}
               <div className="about-card">
-                <h2 className="about-card-title">About Eugene</h2>
-                <p className="admin-bio">{adminProfile.bio}</p>
-                <p className="member-since">
-                  <span className="member-since-label">Member since</span>
-                  <span className="member-since-value">{formatMemberSince(adminProfile.memberSince)}</span>
-                </p>
+                <h2 className="about-card-title">About {adminUser?.fullName || 'Admin'}</h2>
+                {adminUser?.bio ? (
+                  <p className="admin-bio">{adminUser.bio}</p>
+                ) : (
+                  <p className="admin-bio-empty">No bio added yet. Edit your profile to add one.</p>
+                )}
+                {memberSince && (
+                  <p className="member-since">
+                    <span className="member-since-label">Member since </span>
+                    <span className="member-since-value">{formatMemberSince(memberSince)}</span>
+                  </p>
+                )}
               </div>
 
-              {/* Achievements */}
               <div className="about-card">
-                <h2 className="about-card-title">🏆 Achievements</h2>
-                <ul className="achievements-list">
-                  {adminProfile.achievements.map((achievement, index) => (
-                    <li key={index} className="achievement-item">
-                      <span className="achievement-bullet">✦</span>
-                      {achievement}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Interests */}
-              <div className="about-card">
-                <h2 className="about-card-title">💫 Interests</h2>
-                <div className="interests-grid">
-                  {adminProfile.interests.map((interest, index) => (
-                    <span key={index} className="interest-tag">{interest}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Languages */}
-              <div className="about-card">
-                <h2 className="about-card-title">🌍 Languages</h2>
-                <div className="languages-list">
-                  {adminProfile.languages.map((language, index) => (
-                    <span key={index} className="language-badge">{language}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Contact Info */}
-              <div className="about-card">
-                <h2 className="about-card-title">📞 Contact Information</h2>
+                <h2 className="about-card-title">Contact</h2>
                 <div className="contact-info">
-                  <div className="contact-item">
-                    <span className="contact-icon">✉️</span>
-                    <span className="contact-value">{adminUser?.email || ''}</span>
-                  </div>
-                  <div className="contact-item">
-                    <span className="contact-icon">📱</span>
-                    <span className="contact-value">{adminUser?.phone || ''}</span>
-                  </div>
-                  <div className="contact-item">
-                    <span className="contact-icon">📍</span>
-                    <span className="contact-value">{adminUser?.address || ''}</span>
-                  </div>
+                  {adminUser?.email && (
+                    <div className="contact-item">
+                      <span className="contact-icon">✉️</span>
+                      <span className="contact-value">{adminUser.email}</span>
+                    </div>
+                  )}
+                  {adminUser?.phone && (
+                    <div className="contact-item">
+                      <span className="contact-icon">📱</span>
+                      <span className="contact-value">{adminUser.phone}</span>
+                    </div>
+                  )}
+                  {adminUser?.address && (
+                    <div className="contact-item">
+                      <span className="contact-icon">📍</span>
+                      <span className="contact-value">{adminUser.address}</span>
+                    </div>
+                  )}
+                  {!adminUser?.email && !adminUser?.phone && !adminUser?.address && (
+                    <p className="admin-bio-empty">No contact info added.</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -496,8 +475,8 @@ const AdminProfilePage = () => {
                 <div className="admin-events-list">
                   {hostedEvents.map((event) => (
                     <div key={event.id} className="admin-event-card">
-                      <div className="admin-event-image has-admin-watermark">
-                        <img src={event.image} alt={event.title} />
+                      <div className={`admin-event-image has-admin-watermark${!event.image ? ' admin-event-image-placeholder' : ''}`}>
+                        {event.image ? <img src={event.image} alt={event.title} /> : <span>📅</span>}
                         <div className="event-date-badge">
                           {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </div>
@@ -545,7 +524,7 @@ const AdminProfilePage = () => {
           {activeTab === 'posts' && (
             <div className="posts-section">
               <div className="posts-header">
-                <h2 className="posts-title">Posts by Eugene</h2>
+                <h2 className="posts-title">Posts by {adminUser?.fullName?.split(' ')[0] || 'Admin'}</h2>
                 <div className="posts-header-right">
                   <span className="posts-count">{stats.postsCount} {stats.postsCount === 1 ? 'post' : 'posts'}</span>
                   <button 
@@ -567,7 +546,13 @@ const AdminProfilePage = () => {
                     )}
                     <div className="admin-post-content">
                       <div className="post-author-row">
-                        <img src={adminUser?.profileImage || '/pebbles.jpg'} alt={adminUser?.fullName || 'Admin'} className="post-author-avatar" />
+                        {adminUser?.profileImage ? (
+                          <img src={adminUser.profileImage} alt={adminUser?.fullName || 'Admin'} className="post-author-avatar" />
+                        ) : (
+                          <div className="post-author-avatar post-author-avatar-placeholder">
+                            {adminUser?.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                          </div>
+                        )}
                       <div className="post-author-info">
                           <span className="post-author-name">{adminUser?.fullName || 'Admin'}</span>
                           <span className="post-date">
@@ -672,7 +657,7 @@ const AdminProfilePage = () => {
                             const icsContent = [
                               'BEGIN:VCALENDAR',
                               'VERSION:2.0',
-                              'PRODID:-//Rendezvous Social Club//EN',
+                              'PRODID:-//Rendezvous//EN',
                               'BEGIN:VEVENT',
                               `DTSTART:${formatICSDate(startDate)}`,
                               `DTEND:${formatICSDate(endDate)}`,
@@ -719,16 +704,10 @@ const AdminProfilePage = () => {
             <div className="gallery-section">
               <div className="gallery-header">
                 <h2 className="gallery-title">Photo Gallery</h2>
-                <span className="gallery-count">{galleryImages.length} photos</span>
               </div>
-              
-              <div className="gallery-grid">
-                {galleryImages.map((image) => (
-                  <div key={image.id} className="gallery-item">
-                    <img src={image.src} alt={image.caption} />
-                    <div className="gallery-caption">{image.caption}</div>
-                  </div>
-                ))}
+              <div className="gallery-empty">
+                <span>📷</span>
+                <p>No photos yet. Add images to your posts to see them here.</p>
               </div>
             </div>
           )}

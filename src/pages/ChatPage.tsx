@@ -21,7 +21,7 @@ const ChatPage = () => {
               senderId: admin.id,
               senderName: admin.fullName,
               senderImage: admin.profileImage,
-              content: 'Welcome to Rendezvous Social Club! Feel free to ask any questions.',
+              content: 'Welcome! Feel free to ask any questions.',
               timestamp: new Date(Date.now() - 3600000),
               isAdmin: true,
             },

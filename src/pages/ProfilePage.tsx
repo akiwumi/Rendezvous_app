@@ -16,6 +16,18 @@ const ProfilePage = () => {
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    bio: '',
+    address: '',
+    phone: '',
+    instagram: '',
+    facebook: '',
+    twitter: '',
+    linkedin: '',
+  });
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfileClick = (authorId: string) => {
@@ -184,17 +196,55 @@ const ProfilePage = () => {
     }
   };
 
-  const heroImage = 'https://www.cunard.com/content/dam/cunard/marketing-assets/cunard-stories/mediterranean/Mediterranean_Beach_1480x832.jpg.image.1480.832.low.jpg';
+  const startEditing = () => {
+    setEditForm({
+      fullName: profile.fullName || '',
+      bio: profile.bio || '',
+      address: profile.address || '',
+      phone: profile.phone || '',
+      instagram: profile.socialLinks?.instagram || '',
+      facebook: profile.socialLinks?.facebook || '',
+      twitter: profile.socialLinks?.twitter || '',
+      linkedin: profile.socialLinks?.linkedin || '',
+    });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!currentUser || currentUser.id !== profile.id) return;
+    setIsSaving(true);
+    try {
+      const socialLinks: Record<string, string> = {};
+      if (editForm.instagram.trim()) socialLinks.instagram = editForm.instagram.trim();
+      if (editForm.facebook.trim()) socialLinks.facebook = editForm.facebook.trim();
+      if (editForm.twitter.trim()) socialLinks.twitter = editForm.twitter.trim();
+      if (editForm.linkedin.trim()) socialLinks.linkedin = editForm.linkedin.trim();
+      const updates: Partial<User> = {
+        fullName: editForm.fullName.trim(),
+        bio: editForm.bio.trim() || undefined,
+        address: editForm.address.trim() || undefined,
+        phone: editForm.phone.trim() || undefined,
+        socialLinks: Object.keys(socialLinks).length ? socialLinks : undefined,
+      };
+      const updated = await updateUser(profile.id, updates);
+      setProfileUser(updated);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Save profile error:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="profile-page">
-      {/* Full-screen hero inspired by profile2 */}
-      <div className="profile-hero">
-        <img
-          src={heroImage}
-          alt="Profile background"
-          className="profile-hero-image"
-        />
+      {/* Hero - gradient background, no hardcoded image */}
+      <div className="profile-hero profile-hero-gradient">
         <div className="profile-hero-overlay" />
 
         {/* Back button */}
@@ -214,9 +264,7 @@ const ProfilePage = () => {
             )}
             <div>
               <p className="profile-hero-username">@{profile.fullName.replace(/\s+/g, '').toLowerCase()}</p>
-              <p className="profile-hero-tagline">
-                {isAdmin ? 'Club Administrator' : 'Rendezvous Member'}
-              </p>
+              <p className="profile-hero-tagline">{isAdmin ? 'Administrator' : 'Member'}</p>
             </div>
           </div>
           {isAdmin && currentUser?.isAdmin && (
@@ -226,16 +274,16 @@ const ProfilePage = () => {
           )}
         </div>
 
-        {/* Bottom quote / bio area overlaid on image */}
+        {/* Bottom quote / bio area */}
         <div className="profile-hero-bottom">
-          <div className="profile-hero-quote">
-            <span className="quote-mark">"</span>
-          </div>
-          <p className="profile-hero-quote-text">
-            {profile.bio || (isAdmin
-              ? 'Building exceptional experiences for our community.'
-              : 'Member of the Rendezvous Social Club.')}
-          </p>
+          {profile.bio && (
+            <>
+              <div className="profile-hero-quote">
+                <span className="quote-mark">"</span>
+              </div>
+              <p className="profile-hero-quote-text">{profile.bio}</p>
+            </>
+          )}
         </div>
       </div>
 
@@ -260,10 +308,17 @@ const ProfilePage = () => {
               />
             ) : (
               <div
-                className={`profile-avatar-large profile-avatar-placeholder ${isOwnProfile ? 'editable' : ''}`}
+                className={`profile-avatar-large profile-avatar-placeholder ${isOwnProfile ? 'editable profile-avatar-add-photo' : ''}`}
                 onClick={handleImageClick}
               >
-                {profile.fullName.charAt(0).toUpperCase()}
+                {isOwnProfile ? (
+                  <span className="profile-avatar-add-content">
+                    <span className="profile-avatar-add-icon">📷</span>
+                    <span className="profile-avatar-add-text">Add photo</span>
+                  </span>
+                ) : (
+                  profile.fullName.charAt(0).toUpperCase()
+                )}
               </div>
             )}
             {isOwnProfile && (
@@ -271,8 +326,8 @@ const ProfilePage = () => {
                 className="profile-camera-btn"
                 onClick={handleImageClick}
                 disabled={isUploadingImage}
-                title="Change photo"
-                aria-label="Change profile photo"
+                title={profile.profileImage ? 'Change photo' : 'Upload photo'}
+                aria-label={profile.profileImage ? 'Change profile photo' : 'Upload profile photo'}
               >
                 {isUploadingImage ? '⏳' : '📷'}
               </button>
@@ -284,17 +339,25 @@ const ProfilePage = () => {
               {profile.fullName}
               {isAdmin && <span className="profile-admin-chip">Admin</span>}
             </h1>
-            {profile.address && (
+            {profile.address && !isEditing && (
               <p className="profile-address">📍 {profile.address}</p>
             )}
             {isOwnProfile && (
-              <button
-                className="profile-change-photo-btn"
-                onClick={handleImageClick}
-                disabled={isUploadingImage}
-              >
-                {isUploadingImage ? 'Uploading…' : 'Change photo'}
-              </button>
+              <div className="profile-identity-buttons">
+                <button
+                  className="profile-change-photo-btn"
+                  onClick={handleImageClick}
+                  disabled={isUploadingImage}
+                >
+                  {isUploadingImage ? 'Uploading…' : (profile.profileImage ? 'Change photo' : 'Upload photo')}
+                </button>
+                <button
+                  className="profile-edit-btn"
+                  onClick={isEditing ? cancelEditing : startEditing}
+                >
+                  {isEditing ? 'Cancel' : 'Edit profile'}
+                </button>
+              </div>
             )}
           </div>
 
@@ -354,59 +417,162 @@ const ProfilePage = () => {
           {/* ABOUT */}
           {activeTab === 'about' && (
             <div className="profile-section-list">
-              <div className="profile-info-card">
-                <h3 className="profile-info-title">Contact</h3>
-                <div className="profile-info-row">
-                  <span className="profile-info-label">Email</span>
-                  <span className="profile-info-value">{profile.email}</span>
-                </div>
-                {profile.phone && (
-                  <div className="profile-info-row">
-                    <span className="profile-info-label">Phone</span>
-                    <span className="profile-info-value">{profile.phone}</span>
+              {isOwnProfile && isEditing ? (
+                <div className="profile-edit-form">
+                  <div className="profile-info-card">
+                    <h3 className="profile-info-title">Name</h3>
+                    <input
+                      type="text"
+                      value={editForm.fullName}
+                      onChange={e => setEditForm(f => ({ ...f, fullName: e.target.value }))}
+                      className="profile-edit-input"
+                      placeholder="Full name"
+                    />
                   </div>
-                )}
-              </div>
-
-              {profile.socialLinks && Object.values(profile.socialLinks).some(Boolean) && (
-                <div className="profile-info-card">
-                  <h3 className="profile-info-title">Social</h3>
-                  {profile.socialLinks.instagram && (
-                    <div className="profile-info-row">
-                      <span className="profile-info-label">Instagram</span>
-                      <span className="profile-info-value">{profile.socialLinks.instagram}</span>
+                  <div className="profile-info-card">
+                    <h3 className="profile-info-title">Bio</h3>
+                    <textarea
+                      value={editForm.bio}
+                      onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
+                      className="profile-edit-textarea"
+                      placeholder="About you"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="profile-info-card">
+                    <h3 className="profile-info-title">Contact</h3>
+                    <div className="profile-edit-row">
+                      <label>Phone</label>
+                      <input
+                        type="tel"
+                        value={editForm.phone}
+                        onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
+                        className="profile-edit-input"
+                        placeholder="Phone"
+                      />
                     </div>
-                  )}
-                  {profile.socialLinks.facebook && (
-                    <div className="profile-info-row">
-                      <span className="profile-info-label">Facebook</span>
-                      <span className="profile-info-value">{profile.socialLinks.facebook}</span>
+                    <div className="profile-edit-row">
+                      <label>Address</label>
+                      <input
+                        type="text"
+                        value={editForm.address}
+                        onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))}
+                        className="profile-edit-input"
+                        placeholder="Address"
+                      />
                     </div>
-                  )}
-                  {profile.socialLinks.twitter && (
-                    <div className="profile-info-row">
-                      <span className="profile-info-label">Twitter</span>
-                      <span className="profile-info-value">{profile.socialLinks.twitter}</span>
+                  </div>
+                  <div className="profile-info-card">
+                    <h3 className="profile-info-title">Social</h3>
+                    <div className="profile-edit-row">
+                      <label>Instagram</label>
+                      <input
+                        type="text"
+                        value={editForm.instagram}
+                        onChange={e => setEditForm(f => ({ ...f, instagram: e.target.value }))}
+                        className="profile-edit-input"
+                        placeholder="@username"
+                      />
                     </div>
-                  )}
-                  {profile.socialLinks.linkedin && (
-                    <div className="profile-info-row">
-                      <span className="profile-info-label">LinkedIn</span>
-                      <span className="profile-info-value">{profile.socialLinks.linkedin}</span>
+                    <div className="profile-edit-row">
+                      <label>Facebook</label>
+                      <input
+                        type="text"
+                        value={editForm.facebook}
+                        onChange={e => setEditForm(f => ({ ...f, facebook: e.target.value }))}
+                        className="profile-edit-input"
+                        placeholder="Facebook URL"
+                      />
                     </div>
-                  )}
+                    <div className="profile-edit-row">
+                      <label>Twitter</label>
+                      <input
+                        type="text"
+                        value={editForm.twitter}
+                        onChange={e => setEditForm(f => ({ ...f, twitter: e.target.value }))}
+                        className="profile-edit-input"
+                        placeholder="@username"
+                      />
+                    </div>
+                    <div className="profile-edit-row">
+                      <label>LinkedIn</label>
+                      <input
+                        type="text"
+                        value={editForm.linkedin}
+                        onChange={e => setEditForm(f => ({ ...f, linkedin: e.target.value }))}
+                        className="profile-edit-input"
+                        placeholder="LinkedIn URL"
+                      />
+                    </div>
+                  </div>
+                  <div className="profile-edit-actions">
+                    <button className="profile-save-btn" onClick={handleSaveProfile} disabled={isSaving}>
+                      {isSaving ? 'Saving…' : 'Save'}
+                    </button>
+                    <button className="profile-cancel-btn" onClick={cancelEditing}>
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-              )}
+              ) : (
+                <>
+                  <div className="profile-info-card">
+                    <h3 className="profile-info-title">Contact</h3>
+                    <div className="profile-info-row">
+                      <span className="profile-info-label">Email</span>
+                      <span className="profile-info-value">{profile.email}</span>
+                    </div>
+                    {profile.phone && (
+                      <div className="profile-info-row">
+                        <span className="profile-info-label">Phone</span>
+                        <span className="profile-info-value">{profile.phone}</span>
+                      </div>
+                    )}
+                    {profile.address && (
+                      <div className="profile-info-row">
+                        <span className="profile-info-label">Address</span>
+                        <span className="profile-info-value">{profile.address}</span>
+                      </div>
+                    )}
+                  </div>
 
-              {(profile.bio || isAdmin) && (
-                <div className="profile-info-card">
-                  <h3 className="profile-info-title">Bio</h3>
-                  <p className="profile-bio-text">
-                    {profile.bio || (isAdmin
-                      ? `Welcome to Rendezvous Social Club! As the administrator, I'm here to ensure all members have an exceptional experience. Feel free to reach out with any questions or suggestions.`
-                      : '')}
-                  </p>
-                </div>
+                  {profile.socialLinks && Object.values(profile.socialLinks).some(Boolean) && (
+                    <div className="profile-info-card">
+                      <h3 className="profile-info-title">Social</h3>
+                      {profile.socialLinks.instagram && (
+                        <div className="profile-info-row">
+                          <span className="profile-info-label">Instagram</span>
+                          <span className="profile-info-value">{profile.socialLinks.instagram}</span>
+                        </div>
+                      )}
+                      {profile.socialLinks.facebook && (
+                        <div className="profile-info-row">
+                          <span className="profile-info-label">Facebook</span>
+                          <span className="profile-info-value">{profile.socialLinks.facebook}</span>
+                        </div>
+                      )}
+                      {profile.socialLinks.twitter && (
+                        <div className="profile-info-row">
+                          <span className="profile-info-label">Twitter</span>
+                          <span className="profile-info-value">{profile.socialLinks.twitter}</span>
+                        </div>
+                      )}
+                      {profile.socialLinks.linkedin && (
+                        <div className="profile-info-row">
+                          <span className="profile-info-label">LinkedIn</span>
+                          <span className="profile-info-value">{profile.socialLinks.linkedin}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {profile.bio && (
+                    <div className="profile-info-card">
+                      <h3 className="profile-info-title">Bio</h3>
+                      <p className="profile-bio-text">{profile.bio}</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

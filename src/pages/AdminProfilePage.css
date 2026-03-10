@@ -12,6 +12,10 @@
   overflow: hidden;
 }
 
+.admin-hero-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #6b8e4e 50%, #4a6b32 100%);
+}
+
 .admin-hero-image {
   width: 100%;
   height: 100%;
@@ -78,6 +82,16 @@
   object-fit: cover;
   border: 5px solid var(--color-gold);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.admin-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 3.5rem;
+  font-weight: 700;
 }
 
 .admin-verified-badge {
@@ -390,6 +404,12 @@
   font-size: var(--font-size-base);
   color: var(--text-primary);
   line-height: var(--line-height-relaxed);
+}
+
+.admin-bio-empty {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  font-style: italic;
   white-space: pre-line;
 }
 
@@ -602,6 +622,15 @@
   object-fit: cover;
 }
 
+.admin-event-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 3rem;
+}
+
 /* Admin Watermark for Admin Profile Events */
 .admin-event-image.has-admin-watermark::after {
   content: '';
@@ -798,6 +827,16 @@
   border: 2px solid var(--color-gold);
 }
 
+.post-author-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .post-author-info {
   display: flex;
   flex-direction: column;
@@ -850,6 +889,26 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+}
+
+.gallery-empty {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.gallery-empty span {
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
+.gallery-empty p {
+  margin: 0;
+  font-size: var(--font-size-base);
 }
 
 .gallery-grid {

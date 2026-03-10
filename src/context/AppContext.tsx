@@ -170,7 +170,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             await addNotification({
               type: 'announcement',
               title: 'Welcome to Rendezvous!',
-              message: `Welcome ${userData.fullName}! You're now a member of Rendezvous Social Club.`,
+              message: `Welcome ${userData.fullName}! You're now a member.`,
               relatedItemId: createdUser.id,
             });
           } catch (notifError) {
