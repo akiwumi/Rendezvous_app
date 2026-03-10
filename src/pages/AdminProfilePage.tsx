@@ -34,26 +34,19 @@ const AdminProfilePage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load admin user from database
-        let actualAdminUser: User | null = null;
-        try {
-          const adminFromDb = await userService.getUserByEmail('akiwumi@gmail.com');
-          if (adminFromDb && adminFromDb.isAdmin) {
-            actualAdminUser = adminFromDb;
-            setAdminUser(adminFromDb);
-          }
-        } catch (error) {
-          console.error('Admin user not found in DB:', error);
+        const users = await userService.getAllUsers();
+        // Find admin: by email first, then any user with isAdmin, then currentUser if admin
+        let actualAdminUser: User | null = users.find(u => u.isAdmin) ?? null;
+        if (!actualAdminUser && currentUser?.isAdmin) {
+          actualAdminUser = currentUser;
         }
-
         if (!actualAdminUser) {
-          console.error('Admin user not found. Please ensure Eugene Akiwumi is set up in local storage.');
+          console.error('Admin user not found. Ensure a user exists in the database with is_admin = true.');
           return;
         }
+        setAdminUser(actualAdminUser);
 
-        // Load all users (friends) - exclude admin
-        const users = await userService.getAllUsers();
-        const nonAdminUsers = users.filter(u => u.email !== 'akiwumi@gmail.com');
+        const nonAdminUsers = users.filter(u => u.id !== actualAdminUser!.id && !u.isAdmin);
         setFriends(nonAdminUsers);
 
         // Load admin posts - check by admin ID
@@ -98,7 +91,7 @@ const AdminProfilePage = () => {
       }
     };
     loadData();
-  }, [events, posts]);
+  }, [events, posts, currentUser]);
 
   // Load invitation codes when tab is active
   useEffect(() => {
