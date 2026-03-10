@@ -1,5 +1,7 @@
 # Rendezvous App — Go-Live Guide
 
+> Last updated to reflect: route protection, persistent sessions, dummy data removal, admin-only pages.
+
 ## Overview of what needs to happen
 
 ```
@@ -209,18 +211,19 @@ create policy "App write" on public.invitation_codes for all using (true);
 
 > **Note:** These are open policies for now. Once the app is stable you can tighten these so users can only edit their own data.
 
-### Step 5 — Seed your admin user
-In SQL Editor, add yourself as the first admin:
+### Step 5 — Seed your admin users
+The app has two hardcoded admin accounts with fixed passwords (set in `src/services/localDataService.ts`). These must exist in the database before first login. Run in SQL Editor:
+
 ```sql
 insert into public.users (id, full_name, email, is_admin, created_at)
-values (
-  gen_random_uuid(),
-  'Eugene Akiwumi',
-  'akiwumi@gmail.com',
-  true,
-  now()
-);
+values
+  (gen_random_uuid(), 'Eugene Akiwumi',  'akiwumi@gmail.com',          true, now()),
+  (gen_random_uuid(), 'Sokina Bobo',     'sokina.bobo@example.com',    true, now());
 ```
+
+> **Admin passwords** are hardcoded in `src/services/localDataService.ts` in the `ADMIN_CREDENTIALS` map. Change them before going live and keep them private — they are NOT stored in the database.
+
+> **Important:** The app starts with **no dummy data**. The feed, events, and announcements will all be empty until the admin creates real content via the Create Post page.
 
 ---
 
@@ -261,16 +264,22 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 ```
 
 ### Step 8 — Replace localDataService with Supabase calls
-This is the main coding work. Each service function (e.g. `postService.getPosts()`) needs to be rewritten to query Supabase instead of localStorage. Example:
+This is the main coding work. The file `src/services/localDataService.ts` contains all data operations. Each service function needs to be rewritten to query Supabase instead of localStorage.
 
-**Before (localStorage):**
+**Current session behaviour (important to preserve):**
+The app now stores the full user object (not just an ID) in `localStorage` under the key `rendezvous_current_user`. When switching to Supabase auth, this key must either be removed (Supabase manages its own session cookie) or kept in sync. When you ask Claude to do this migration, mention that:
+- Sessions must persist across browser restarts without re-login
+- Logout must clear both the Supabase session and any cached localStorage keys
+- Admin route protection is already built in (`src/App.tsx`) — it reads `currentUser.isAdmin`
+
+**Example — before (localStorage):**
 ```typescript
 getPosts: () => {
   return Promise.resolve(data.posts);
 }
 ```
 
-**After (Supabase):**
+**Example — after (Supabase):**
 ```typescript
 getPosts: async () => {
   const { data, error } = await supabase
@@ -282,7 +291,18 @@ getPosts: async () => {
 }
 ```
 
-> Ask Claude to rewrite the entire `localDataService.ts` to use Supabase once your tables are created.
+> Ask Claude to rewrite the entire `localDataService.ts` to use Supabase once your tables are created. Also ask it to replace the localStorage session logic with `supabase.auth.getSession()` and `supabase.auth.onAuthStateChange()`.
+
+### Step 8a — Route protection (already done — no action needed)
+The app enforces access control at the router level:
+
+| Route type | Guard | Behaviour |
+|---|---|---|
+| `/`, `/login`, `/register` | None | Public — anyone can visit |
+| All member pages | `ProtectedRoute` | Redirects to `/login` if not logged in |
+| All `/admin/*` pages | `AdminRoute` | Redirects to `/login` if not logged in; redirects to `/announcements` if not admin |
+
+When switching to Supabase auth, no changes to `src/App.tsx` are needed — `ProtectedRoute` and `AdminRoute` read from `currentUser` in the React context, which will be populated from Supabase the same way it currently is from localStorage.
 
 ---
 
@@ -308,6 +328,12 @@ git push origin main
 Vercel gives you a live URL like `rendezvous-app.vercel.app` immediately.
 
 Every time you `git push` to `main`, Vercel automatically redeploys.
+
+**Add the Vercel URL to Supabase allowed origins:**
+1. In Supabase → **Authentication → URL Configuration**
+2. Add your Vercel URL to **Redirect URLs** (e.g. `https://rendezvous-app.vercel.app`)
+3. Also add your custom domain once set up
+4. Without this, Supabase auth redirects will be blocked
 
 ### Step 11 — Set up a custom domain (optional)
 1. In Vercel, go to your project → **Settings → Domains**
@@ -351,9 +377,26 @@ Supabase has built-in email via **Auth → Email Templates**. For custom emails 
 
 ## Recommended order
 
-1. **Phase 1** — Create Supabase tables (~1 hour)
+1. **Phase 1** — Create Supabase tables and seed admin users (~1 hour)
 2. **Ask Claude** to rewrite `localDataService.ts` for Supabase — Claude does the code
 3. **Test locally** with your `.env` file — `npm run dev`
-4. **Phase 3** — Deploy to Vercel (~20 minutes)
-5. Add **Stripe** when ready for paid events
-6. Add **Supabase Storage** to replace base64 images
+4. Verify: login persists across refresh, admin pages require admin login, member pages require login
+5. **Phase 3** — Deploy to Vercel (~20 minutes)
+6. Add Vercel URL to Supabase allowed origins
+7. Add **Stripe** when ready for paid events
+8. Add **Supabase Storage** to replace base64 images
+
+---
+
+## Current app state (as of this version)
+
+| Feature | Status |
+|---|---|
+| Session persistence | Stored as full user object in localStorage — survives refresh/restart |
+| Route protection | All pages protected; admin pages require `isAdmin` flag |
+| Dummy data | Removed — app starts completely empty |
+| Admin accounts | Eugene + Sokina hardcoded; passwords in `localDataService.ts` |
+| Invitation codes | Required for new member registration |
+| Posts, events, ads | Admin creates all content via `/admin/create-post` and `/admin/ads` |
+| Payments | Fields exist in DB schema; Stripe integration pending |
+| Image storage | Currently base64 in localStorage — Supabase Storage needed for production |
