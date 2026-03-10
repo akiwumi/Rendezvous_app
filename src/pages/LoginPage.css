@@ -162,6 +162,13 @@
   cursor: not-allowed;
 }
 
+/* Forgot password row */
+.login-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
 /* Register row */
 .login-register-row {
   display: flex;

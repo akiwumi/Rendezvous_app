@@ -29,7 +29,7 @@ const LoginPage = () => {
         setError('Invalid email or password. Please try again.');
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.message || 'Incorrect email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +81,16 @@ const LoginPage = () => {
             {isLoading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
+
+        <div className="login-forgot-row">
+          <button
+            type="button"
+            className="login-register-link"
+            onClick={() => navigate('/forgot-password')}
+          >
+            Forgot password?
+          </button>
+        </div>
 
         <div className="login-register-row">
           <span>Don't have an account?</span>

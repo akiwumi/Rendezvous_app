@@ -266,17 +266,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error('=== LOGIN ERROR ===');
       console.error('Error details:', error);
       
-      // Check for specific auth errors
-      if (error?.message?.includes('Invalid login credentials') || 
-          error?.message?.includes('Invalid')) {
-        throw new Error('Invalid email or password. Please verify:\n- Email: akiwumi@gmail.com\n- Password: 1234');
-      } else if (error?.message?.includes('User profile not found') || 
-                 error?.message?.includes('Failed to create user profile')) {
-        throw error; // Re-throw custom message
-      }
-      
-      // Re-throw with original message
-      throw new Error(error?.message || 'Login failed. Please try again.');
+      throw new Error('Incorrect email or password. Please try again.');
     }
   };
 

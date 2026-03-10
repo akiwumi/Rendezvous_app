@@ -4,6 +4,8 @@ import SplashScreen from './components/SplashScreen';
 import BottomNav from './components/BottomNav';
 import SearchBar from './components/SearchBar';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import RegistrationPage from './pages/RegistrationPage';
 import EventsPage from './pages/EventsPage';
@@ -38,7 +40,7 @@ const AdminRoute = ({ children }: { children: JSX.Element }) => {
 
 const AppContent = () => {
   const location = useLocation();
-  const hideNav = ['/', '/login', '/register', '/admin-console', '/admin', '/admin/ads', '/admin/messages', '/admin/create-post'].includes(location.pathname);
+  const hideNav = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/admin-console', '/admin', '/admin/ads', '/admin/messages', '/admin/create-post'].includes(location.pathname);
 
   return (
     <>
@@ -46,6 +48,8 @@ const AppContent = () => {
         {/* Public routes */}
         <Route path="/" element={<SplashScreen />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/feed" element={<Navigate to="/announcements" replace />} />
 
