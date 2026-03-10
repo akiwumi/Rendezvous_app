@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Post, Event, Notification, Announcement } from '../types';
 // Local data service replaces Supabase
-import { authService, userService, postService, eventService, notificationService, invitationService, announcementService, adminService, getLocalData } from '../services/localDataService';
+import { authService, userService, postService, eventService, notificationService, invitationService, adminService } from '../services/localDataService';
 
 interface AppContextType {
   currentUser: User | null;
@@ -20,7 +20,7 @@ interface AppContextType {
   registerUser: (userData: Partial<User>, invitationCode: string) => Promise<boolean>;
   loginUser: (email: string, password: string) => Promise<boolean>;
   logoutUser: () => Promise<void>;
-  updateUser: (userId: string, updates: Partial<User>) => Promise<void>;
+  updateUser: (userId: string, updates: Partial<User>) => Promise<User>;
   addPost: (post: Post) => Promise<void>;
   registerForEvent: (eventId: string, userId: string) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
@@ -209,8 +209,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             fullName: userMetadata.full_name || email.split('@')[0],
             phone: userMetadata.phone || '',
             address: userMetadata.address || '',
-            profileImage: userMetadata.profile_image || '',
-            socialLinks: userMetadata.social_links || {},
+            profileImage: '',
+            socialLinks: {},
             friends: [],
             likedPosts: [],
             registeredEvents: [],

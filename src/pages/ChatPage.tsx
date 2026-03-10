@@ -1,21 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { userService } from '../services/localDataService';
-import { Message, User } from '../types';
+import { Message } from '../types';
 import AppHeader from '../components/AppHeader';
 import './ChatPage.css';
 
 const ChatPage = () => {
   const { currentUser } = useApp();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [adminUser, setAdminUser] = useState<User | null>(null);
 
   useEffect(() => {
     const loadAdmin = async () => {
       try {
         const admin = await userService.getUserByEmail('akiwumi@gmail.com');
         if (admin && admin.isAdmin) {
-          setAdminUser(admin);
           // Add welcome message from admin
           setMessages([
             {

@@ -8,7 +8,7 @@ import './AdminConsolePage.css';
 
 const AdminConsolePage = () => {
   const navigate = useNavigate();
-  const { currentUser, posts, events, announcements, deleteUser, deletePost, deleteEvent, deleteAnnouncement } = useApp();
+  const { currentUser, deleteUser, deletePost, deleteEvent, deleteAnnouncement } = useApp();
   const [activeSection, setActiveSection] = useState<'overview' | 'users' | 'posts' | 'events' | 'announcements' | 'invitations'>('overview');
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
