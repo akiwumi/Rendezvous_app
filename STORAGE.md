@@ -1,148 +1,148 @@
-# Supabase Storage Setup Guide
+# Supabase Setup Guide for Rendezvous
 
-The app uploads images, videos, and documents directly to Supabase Storage. You need to create three storage buckets and make them publicly readable. This takes about 10 minutes.
-
----
-
-## What gets stored where
-
-| Bucket | Used for | Size limit |
-|---|---|---|
-| `avatars` | User profile photos | 10 MB |
-| `post-media` | Images, videos, and documents on posts | 200 MB (video), 25 MB (other) |
-| `chat-attachments` | Images, videos, and documents sent in chat | 50 MB |
+This guide walks you through the steps needed in Supabase to make the app work correctly (profile photos, admin features, etc.). No coding experience required—just follow the steps.
 
 ---
 
-## Step 1 — Create the storage buckets
+## Prerequisites
 
-1. Go to your Supabase project dashboard
-2. Click **Storage** in the left sidebar
-3. Click **New bucket** and create each of the following:
-
-**Bucket 1:**
-- Name: `avatars`
-- Toggle **Public bucket** ON
-- Click **Save**
-
-**Bucket 2:**
-- Name: `post-media`
-- Toggle **Public bucket** ON
-- Click **Save**
-
-**Bucket 3:**
-- Name: `chat-attachments`
-- Toggle **Public bucket** ON
-- Click **Save**
-
-> **Why public?** The app displays these files directly in `<img>` and `<video>` tags using the public URL. If the bucket is private, the files won't load.
+- You have a Supabase account (free at [supabase.com](https://supabase.com))
+- Your project is already created and you have the **URL** and **Anon Key** in your `.env` file
 
 ---
 
-## Step 2 — Set storage policies
+## Step 1: Enable Storage (for profile pictures and uploads)
 
-By default, even a public bucket requires a policy to allow uploads. Run the following SQL in **SQL Editor → New query**:
+Profile photos and post images are stored in Supabase Storage. You need to create buckets and set up access rules.
+
+### 1.1 Open the SQL Editor
+
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Click on your project (e.g. "Rendezvous_app")
+3. In the left sidebar, click **SQL Editor**
+4. Click **+ New query**
+
+### 1.2 Run the storage migration
+
+1. Open the file `supabase/migrations/20250310000000_storage_buckets.sql` in your project folder
+2. Copy **all** of its contents (Ctrl+A, then Ctrl+C)
+3. Paste into the Supabase SQL Editor
+4. Click **Run** (or press Ctrl+Enter)
+5. You should see "Success. No rows returned" or similar—that's correct
+
+This creates three storage areas:
+
+- **avatars** – profile pictures (max 10 MB each)
+- **post-media** – images/videos in posts (max 200 MB)
+- **chat-attachments** – files in chat (max 50 MB)
+
+---
+
+## Step 2: Make yourself an admin (if you’re not already)
+
+The admin profile and Admin Console only work for users marked as admins. This must be set in the database.
+
+### 2.1 Open the Table Editor
+
+1. In the Supabase left sidebar, click **Table Editor**
+2. Click the **users** table
+
+### 2.2 Set admin flag for your user
+
+1. Find the row where your email appears
+2. Click on the **is_admin** cell for that row
+3. Change `false` to `true` (or use the toggle if available)
+4. Press Enter or click outside the cell to save
+
+**Alternative: use SQL**
+
+1. Go to **SQL Editor** → **+ New query**
+2. Replace `your-email@example.com` with your real email and run:
 
 ```sql
--- Allow any authenticated user to upload to all three buckets
-create policy "Authenticated uploads — avatars"
-  on storage.objects for insert
-  to authenticated
-  with check (bucket_id = 'avatars');
-
-create policy "Authenticated uploads — post-media"
-  on storage.objects for insert
-  to authenticated
-  with check (bucket_id = 'post-media');
-
-create policy "Authenticated uploads — chat-attachments"
-  on storage.objects for insert
-  to authenticated
-  with check (bucket_id = 'chat-attachments');
-
--- Allow users to overwrite their own avatar
-create policy "Users can update own avatar"
-  on storage.objects for update
-  to authenticated
-  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
-
--- Allow public read on all three buckets
-create policy "Public read — avatars"
-  on storage.objects for select
-  to public
-  using (bucket_id = 'avatars');
-
-create policy "Public read — post-media"
-  on storage.objects for select
-  to public
-  using (bucket_id = 'post-media');
-
-create policy "Public read — chat-attachments"
-  on storage.objects for select
-  to public
-  using (bucket_id = 'chat-attachments');
+UPDATE users
+SET is_admin = true
+WHERE email = 'your-email@example.com';
 ```
 
-Click **Run**. You should see "Success. No rows returned."
+3. Click **Run**
 
 ---
 
-## Step 3 — Verify it works
+## Step 3: Check environment variables (local development)
 
-1. Run the app locally (`npm run dev`) with your `.env` keys set
-2. Go to your profile page and tap the camera icon — upload a photo
-3. Your profile picture should update immediately (no page reload needed)
-4. Go to Create Post (admin only) and upload an image or video — it should appear in the preview
-5. Go to Chat and tap the 📎 paperclip button — send an image or document
+Your app needs Supabase credentials to connect. They live in a `.env` file in the project root.
 
-If any of those fail, check **Storage → Logs** in the Supabase dashboard for the specific error.
+### 3.1 Confirm your `.env` file
 
----
+Create or edit `.env` in the project folder with:
 
-## Step 4 — Set file size limits (optional)
+```
+VITE_SUPABASE_URL=https://xxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
 
-Supabase Free tier has a 50 MB per-file limit by default. The app enforces its own limits before uploading (10 MB for avatars, 200 MB for videos, 25 MB for other files), but you can also enforce limits at the bucket level:
+Replace the values with:
 
-1. In Supabase → Storage → click on the bucket name
-2. Click **Edit bucket**
-3. Set **File size limit** to whatever you want (e.g. `209715200` for 200 MB)
-4. Click **Save**
+- **VITE_SUPABASE_URL**: Project URL from **Project Settings** → **API** → **Project URL**
+- **VITE_SUPABASE_ANON_KEY**: Anon public key from **Project Settings** → **API** → **Project API keys** → **anon public**
 
-> **Note:** On the Supabase free tier, total storage is capped at 1 GB across all buckets. Upgrade to Pro for more.
+**Important:** Do not commit `.env` to Git. It is already in `.gitignore`.
 
 ---
 
-## Step 5 — Set up CORS for your Vercel domain (if needed)
+## Step 4: Edit your profile (admin or regular user)
 
-If uploads work locally but fail on Vercel, you may need to allow your production domain:
+### Profile page (where you edit)
 
-1. In Supabase → **Storage → Policies**
-2. Confirm the policies you created in Step 2 are listed
-3. In Supabase → **Project Settings → API**
-4. Under **CORS**, add your Vercel URL: `https://your-app.vercel.app`
+1. Log in to the app
+2. Go to **Profile** (tap the Profile tab or your avatar)
+3. Click **Edit profile**
+4. Change your name, bio, phone, address, and social links
+5. Click **Save**
 
-In most cases CORS is not needed because Supabase Storage allows all origins by default.
+### Profile photo
+
+1. On your profile page, click your avatar or the **Upload photo** / **Change photo** button
+2. Choose an image from your device (JPEG, PNG, GIF, or WebP)
+3. Wait for the upload to finish
+
+### Admin profile
+
+1. Admins can open **Profile** in the nav or the **Admin Profile** page
+2. Click **Edit Profile** to go to the editable profile
+3. Use the same flow as above to edit bio, photo, etc.
 
 ---
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| Upload fails with "Bucket not found" | You didn't create the bucket in Step 1. Check the bucket name matches exactly (`avatars`, `post-media`, `chat-attachments`). |
-| Upload fails with "row-level security policy" | You didn't run the SQL in Step 2, or you ran it while not logged in. Make sure the user is authenticated before uploading. |
-| Image uploads but doesn't display | The bucket is not set to Public. Go to Storage → edit the bucket → toggle Public ON. |
-| "File too large" error in the app | The file exceeds the app's client-side limit (10 MB avatars, 200 MB video, 25 MB other, 50 MB chat). |
-| Supabase free tier storage full | You've used 1 GB. Delete old uploads in Storage → browse files, or upgrade to Supabase Pro. |
+### "Failed to upload profile image"
+
+- Ensure **Step 1** was completed successfully
+- Confirm you are logged in when trying to upload
+- Try again; sometimes the first upload after setup is slower
+
+### "Admin user not found"
+
+- Complete **Step 2** to set `is_admin = true` for your user
+- Log out and log back in so the app picks up the change
+
+### 404 on page refresh (deployed app)
+
+- This is usually fixed by `vercel.json`. Ensure it is deployed
+- In Vercel, check **Settings** → **General** → **Output Directory** is set to `dist`
+
+### Storage buckets already exist
+
+- If you rerun the migration, it’s safe. The SQL uses `ON CONFLICT DO NOTHING` and drops/recreates policies
+- You can run it again without breaking existing data
 
 ---
 
-## What was built in the app
+## Quick checklist
 
-| File | What changed |
-|---|---|
-| `src/services/localDataService.ts` | Added `storageService` — `uploadAvatar`, `uploadPostMedia`, `uploadChatAttachment`, `getAttachmentType`, `isVideoUrl` |
-| `src/pages/ProfilePage.tsx` | Profile image upload now sends to `avatars` bucket instead of storing base64 |
-| `src/pages/CreatePostPage.tsx` | Post media upload sends to `post-media` bucket; supports images, videos (up to 200 MB), and documents (PDF, Word, Excel, PowerPoint) |
-| `src/pages/ChatPage.tsx` | Paperclip button uploads to `chat-attachments`; images/videos render inline, documents show as download link |
-| `src/types/index.ts` | `Message` type extended with `attachmentUrl`, `attachmentName`, `attachmentType` fields |
+- [ ] Ran storage migration in SQL Editor (Step 1)
+- [ ] Set `is_admin = true` for your user (Step 2)
+- [ ] `.env` has correct `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (Step 3)
+- [ ] Restarted dev server after changing `.env` (`npm run dev`)

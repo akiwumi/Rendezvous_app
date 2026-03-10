@@ -169,7 +169,7 @@ const ProfilePage = () => {
   const profile = profileUser;
   const admin = adminUser || allUsers.find(u => u.isAdmin);
   const isAdmin = profile.isAdmin || (admin && profile.id === admin.id);
-  const isOwnProfile = currentUser && profile && currentUser.id === profile.id && !(admin && profile.id === admin.id);
+  const isOwnProfile = currentUser && profile && currentUser.id === profile.id;
 
   const friends = (profile.friends || [])
     .map(friendId => allUsers.find(u => u.id === friendId))
