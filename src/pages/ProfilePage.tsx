@@ -140,7 +140,7 @@ const ProfilePage = () => {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       console.error('Cover upload error:', err);
-      alert(`Failed to upload cover: ${msg}. Run the storage migration in Supabase (see STORAGE.md).`);
+      alert(`Failed to upload cover: ${msg}. Run the storage migration in Supabase (see STORAGE_USERS.md).`);
     } finally {
       setIsUploadingCover(false);
     }
@@ -167,7 +167,7 @@ const ProfilePage = () => {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
       console.error('Profile image upload error:', err);
-      alert(`Failed to upload profile image: ${msg}. Make sure storage buckets are set up in Supabase (see supabase/migrations).`);
+      alert(`Failed to upload profile image: ${msg}. See STORAGE_USERS.md for setup.`);
     } finally {
       setIsUploadingImage(false);
     }

@@ -8,7 +8,7 @@ import './AdminConsolePage.css';
 
 const AdminConsolePage = () => {
   const navigate = useNavigate();
-  const { currentUser, deleteUser, deletePost, deleteEvent, deleteAnnouncement } = useApp();
+  const { currentUser, updateUser, deleteUser, deletePost, deleteEvent, deleteAnnouncement } = useApp();
   const [activeSection, setActiveSection] = useState<'overview' | 'users' | 'posts' | 'events' | 'announcements' | 'invitations'>('overview');
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
@@ -114,6 +114,32 @@ const AdminConsolePage = () => {
         console.error('Error deleting announcement:', error);
         alert('Failed to delete announcement');
       }
+    }
+  };
+
+  const handlePromoteToAdmin = async (user: User) => {
+    if (!window.confirm(`Make "${user.fullName}" an admin? They will have full admin access.`)) return;
+    try {
+      const updated = await updateUser(user.id, { isAdmin: true });
+      setAllUsers(prev => prev.map(u => u.id === user.id ? updated : u));
+    } catch (error) {
+      console.error('Error promoting user:', error);
+      alert('Failed to promote user. Ensure the RLS policy allows admins to update users (see STORAGE_USERS.md).');
+    }
+  };
+
+  const handleDemoteFromAdmin = async (user: User) => {
+    if (user.id === currentUser?.id) {
+      alert('You cannot remove your own admin status.');
+      return;
+    }
+    if (!window.confirm(`Remove admin status from "${user.fullName}"?`)) return;
+    try {
+      const updated = await updateUser(user.id, { isAdmin: false });
+      setAllUsers(prev => prev.map(u => u.id === user.id ? updated : u));
+    } catch (error) {
+      console.error('Error demoting user:', error);
+      alert('Failed to remove admin status.');
     }
   };
 
@@ -300,13 +326,32 @@ const AdminConsolePage = () => {
                             >
                               View
                             </button>
-                            {!user.isAdmin && (
-                              <button
-                                className="action-btn delete"
-                                onClick={() => handleDeleteUser(user.id, user.fullName)}
-                              >
-                                Delete
-                              </button>
+                            {user.isAdmin ? (
+                              user.id !== currentUser?.id && (
+                                <button
+                                  className="action-btn demote"
+                                  onClick={() => handleDemoteFromAdmin(user)}
+                                  title="Remove admin access"
+                                >
+                                  Remove admin
+                                </button>
+                              )
+                            ) : (
+                              <>
+                                <button
+                                  className="action-btn promote"
+                                  onClick={() => handlePromoteToAdmin(user)}
+                                  title="Grant admin access"
+                                >
+                                  Make admin
+                                </button>
+                                <button
+                                  className="action-btn delete"
+                                  onClick={() => handleDeleteUser(user.id, user.fullName)}
+                                >
+                                  Delete
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>

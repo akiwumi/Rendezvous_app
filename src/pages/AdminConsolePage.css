@@ -293,6 +293,24 @@
   opacity: 0.8;
 }
 
+.action-btn.promote {
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+.action-btn.promote:hover {
+  opacity: 0.8;
+}
+
+.action-btn.demote {
+  background-color: var(--text-secondary);
+  color: var(--text-inverse);
+}
+
+.action-btn.demote:hover {
+  opacity: 0.8;
+}
+
 .action-btn.copy {
   background-color: var(--color-primary);
   color: var(--text-inverse);
