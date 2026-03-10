@@ -4,14 +4,6 @@
  */
 
 import { User, Post, Event, Notification, Announcement, Advertisement, AdminMessage } from '../types';
-import { adminUser } from '../data/dummyData';
-
-// Hardcoded admin credentials
-const ADMIN_CREDENTIALS: Record<string, string> = {
-  'akiwumi@gmail.com': 'Rendezvous1!',
-  'sokina.bobo@example.com': 'Admin2024!',
-};
-
 // Storage keys for localStorage
 const STORAGE_KEYS = {
   users: 'rendezvous_users',
@@ -53,7 +45,7 @@ const storage = {
 
 // Initialize data from localStorage or use defaults
 const initializeData = () => {
-  const users = storage.get<User[]>(STORAGE_KEYS.users, [adminUser]);
+  const users = storage.get<User[]>(STORAGE_KEYS.users, []);
   const posts = storage.get<Post[]>(STORAGE_KEYS.posts, []);
   const events = storage.get<Event[]>(STORAGE_KEYS.events, []);
   const announcements = storage.get<Announcement[]>(STORAGE_KEYS.announcements, []);
@@ -77,7 +69,7 @@ const generateId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().
 
 // Authentication Service
 export const authService = {
-  async signUp(email: string, password: string, userData: Partial<User>) {
+  async signUp(email: string, _password: string, userData: Partial<User>) {
     // Check if user already exists
     if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
       throw new Error('User with this email already exists');
@@ -122,20 +114,12 @@ export const authService = {
     };
   },
 
-  async signIn(email: string, password: string) {
+  async signIn(email: string, _password: string) {
     const normalizedEmail = email.toLowerCase();
     const user = users.find(u => u.email.toLowerCase() === normalizedEmail);
 
     if (!user) {
       throw new Error('Invalid login credentials');
-    }
-
-    // Admin accounts require exact password match
-    if (user.isAdmin) {
-      const expectedPassword = ADMIN_CREDENTIALS[normalizedEmail];
-      if (!expectedPassword || password !== expectedPassword) {
-        throw new Error('Invalid login credentials');
-      }
     }
 
     return {

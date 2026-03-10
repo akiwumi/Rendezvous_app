@@ -1,25 +1,3 @@
-import { User } from '../types';
-
-// Admin User — Eugene Akiwumi (Pebbles)
-export const adminUser: User = {
-  id: 'admin-1',
-  fullName: 'Eugene Akiwumi',
-  email: 'akiwumi@gmail.com',
-  phone: '',
-  address: 'Palma de Mallorca, Spain',
-  profileImage: '/pebbles.jpg',
-  friends: [],
-  isAdmin: true,
-  socialLinks: {
-    instagram: '@pebbles_rendezvous',
-    facebook: 'eugene.akiwumi',
-    twitter: '@PebblesRSC',
-    linkedin: 'eugene-akiwumi',
-  },
-  likedPosts: [],
-  registeredEvents: [],
-};
-
 // Admin profile static content shown on the admin profile page
 export const adminProfile = {
   bio: `Founder and Director of Rendezvous Social Club, Eugene Akiwumi (known as Pebbles) has been the heart and soul of Mallorca's most exclusive private social club. With extensive experience in luxury hospitality and event management, Eugene brings a unique blend of warmth, professionalism, and Mediterranean charm to every gathering.
@@ -57,9 +35,3 @@ Eugene's vision for Rendezvous is to create a space where like-minded individual
     countriesRepresented: 28,
   },
 };
-
-// Empty arrays — no dummy data
-export const dummyUsers: User[] = [];
-export const dummyPosts: never[] = [];
-export const dummyEvents: never[] = [];
-export const dummyAnnouncements: never[] = [];

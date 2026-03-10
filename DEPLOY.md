@@ -211,19 +211,41 @@ create policy "App write" on public.invitation_codes for all using (true);
 
 > **Note:** These are open policies for now. Once the app is stable you can tighten these so users can only edit their own data.
 
-### Step 5 — Seed your admin users
-The app has two hardcoded admin accounts with fixed passwords (set in `src/services/localDataService.ts`). These must exist in the database before first login. Run in SQL Editor:
+### Step 5 — Create your first admin user in Supabase
 
+Admin status is controlled **entirely by the database** — there are no hardcoded admin emails or passwords in the code. To make someone an admin:
+
+**Option A — Register first, then promote (recommended):**
+1. Register the account normally through the app (you'll need an invitation code — create one first in Supabase)
+2. Then in Supabase SQL Editor, run:
 ```sql
-insert into public.users (id, full_name, email, is_admin, created_at)
-values
-  (gen_random_uuid(), 'Eugene Akiwumi',  'akiwumi@gmail.com',          true, now()),
-  (gen_random_uuid(), 'Sokina Bobo',     'sokina.bobo@example.com',    true, now());
+update public.users
+set is_admin = true
+where email = 'your-email@example.com';
 ```
 
-> **Admin passwords** are hardcoded in `src/services/localDataService.ts` in the `ADMIN_CREDENTIALS` map. Change them before going live and keep them private — they are NOT stored in the database.
+**Option B — Insert directly into Supabase:**
+```sql
+-- First create the auth user via Supabase Dashboard → Authentication → Users → "Invite user"
+-- Then insert their profile:
+insert into public.users (id, full_name, email, is_admin, created_at)
+values (
+  '<paste-the-uuid-from-auth-dashboard>',
+  'Your Full Name',
+  'your-email@example.com',
+  true,
+  now()
+);
+```
 
-> **Important:** The app starts with **no dummy data**. The feed, events, and announcements will all be empty until the admin creates real content via the Create Post page.
+**To remove admin access:**
+```sql
+update public.users set is_admin = false where email = 'their-email@example.com';
+```
+
+> **No hardcoded passwords.** Admin accounts use the same Supabase Auth password as any member. Reset passwords via Supabase Dashboard → Authentication → Users.
+
+> **Important:** The app starts with **no data**. The feed, events, and announcements will be empty until an admin creates content via the Create Post page.
 
 ---
 
@@ -395,7 +417,7 @@ Supabase has built-in email via **Auth → Email Templates**. For custom emails 
 | Session persistence | Stored as full user object in localStorage — survives refresh/restart |
 | Route protection | All pages protected; admin pages require `isAdmin` flag |
 | Dummy data | Removed — app starts completely empty |
-| Admin accounts | Eugene + Sokina hardcoded; passwords in `localDataService.ts` |
+| Admin accounts | Controlled via `is_admin` flag in database — no hardcoded emails or passwords |
 | Invitation codes | Required for new member registration |
 | Posts, events, ads | Admin creates all content via `/admin/create-post` and `/admin/ads` |
 | Payments | Fields exist in DB schema; Stripe integration pending |

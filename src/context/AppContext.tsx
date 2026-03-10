@@ -201,31 +201,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           
           // Get user metadata from auth
           const userMetadata = authUser.user_metadata || {};
-          const emailLower = email.toLowerCase();
-          const isEugene = emailLower === 'akiwumi@gmail.com';
-          const isSokina = emailLower.includes('sokina') && emailLower.includes('bobo');
-          
-          // Determine full name based on email
-          let fullName = userMetadata.full_name || email.split('@')[0];
-          if (isEugene) {
-            fullName = 'Eugene Akiwumi';
-          } else if (isSokina) {
-            fullName = 'Sokina Bobo';
-          }
-          
-          // Create basic user profile
+
+          // Create basic user profile — isAdmin is set only via the database
           const newUser: User = {
             id: authUser.id,
             email: authUser.email || email,
-            fullName: fullName,
+            fullName: userMetadata.full_name || email.split('@')[0],
             phone: userMetadata.phone || '',
             address: userMetadata.address || '',
-            profileImage: userMetadata.profile_image || '/pebbles.jpg',
+            profileImage: userMetadata.profile_image || '',
             socialLinks: userMetadata.social_links || {},
             friends: [],
             likedPosts: [],
             registeredEvents: [],
-            isAdmin: isEugene || isSokina, // Auto-set admin for Eugene and Sokina
+            isAdmin: false,
           };
           
           console.log('Creating user profile with data:', {

@@ -1,293 +1,87 @@
-# Rendezvous Social Club - Mobile App
+# Rendezvous Social Club App
 
-An exclusive private social club mobile application built with React, TypeScript, and Vite.
+A private members social club app built with React, TypeScript, and Vite. Members access the app by invitation only. Admins manage all content, events, and membership.
 
-## Features
+---
 
-- **Splash Screen** - Elegant welcome screen with branding and compact side-by-side login/register buttons positioned lower on the page
-- **Login Page** - User authentication with local storage
-- **Announcements** - Main page with admin announcements (parties, events, exhibitions, tournaments, trips)
-- **Registration** - Member registration with invitation code validation
-- **User Feed** - Facebook-like social feed for members to post and interact
-- **Events** - Event listings with calendar integration and RSVP functionality
-- **Search & Connect** - Find and connect with other members
-- **Search Bar** - Floating search modal accessible from bottom menu with magnifying glass icon. Includes advanced search options (Date, Location, Time) hidden under "Advanced Search" button
-- **Chat** - Real-time messaging with members and administrators
-- **Profile** - User profiles with tabs for About, Friends, Liked Posts, Events, and Reminders. Dynamic routing for viewing any user's profile (`/profile/:userId`)
-- **Admin Profile** - Complete admin profile page for Eugene Akiwumi with bio, achievements, hosted events, posts, gallery, and full admin tools
-- **Friends System** - Facebook-style friends list with profile images, clickable cards, and navigation to friend profiles
-- **User Profiles** - User profiles with personalized biographies and full profile information (stored locally)
-- **Notifications** - Notification system for posts, events, announcements, and updates
-- **Watermarks** - Automatic logo watermark on all admin-created content (posts, announcements, events)
-- **Pull-to-Refresh** - Facebook-like pull-to-refresh functionality on main content pages (Feed, Announcements, Events, Notifications)
-- **Local Data Storage** - All data stored locally using localStorage for persistence across sessions
-- **Live Statistics** - Dynamic stats on admin profile (events hosted, members, years active, countries) calculated from local data
-- **Data-Driven** - All content (posts, events, announcements, users) is managed locally with localStorage persistence
+## Tech Stack
 
-## Design System
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, TypeScript, Vite |
+| Routing | React Router v7 |
+| Styling | CSS (mobile-first, max-width 414px) |
+| Data (current) | localStorage (browser) |
+| Data (production) | Supabase (PostgreSQL) |
+| Hosting | Vercel |
+| Payments | Stripe (pending) |
 
-The app uses a sophisticated color palette:
-- **Rustic Gold**: `#e3d18d`, `#d4bf74`, `#e8d797`
-- **Dark Olive Green**: `#556B2F` (from green-swatch.png)
+---
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-
-### Installation
+## Running locally
 
 ```bash
 npm install
-```
-
-### Development
-
-```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+Opens at `http://localhost:5173`
 
-### Build
+---
 
-```bash
-npm run build
-```
+## Access control
 
-## Project Structure
+The app enforces three access levels:
 
-```
-src/
-├── components/       # Reusable components
-├── pages/           # Page components
-├── context/         # React context for state management
-├── types/           # TypeScript type definitions
-├── data/            # Static data (admin profile info, design system)
-├── services/        # Local data service layer
-├── utils/           # Utility functions (database helpers)
-└── design-system.css # Design system CSS variables
-```
+| Level | Who | Access |
+|---|---|---|
+| Public | Anyone | Splash screen, Login, Registration |
+| Member | Registered users | Feed, Events, Chat, Profile, Search, Notifications |
+| Admin | Users with `is_admin = true` in the database | All member pages + Admin dashboard, Create Post, Ad Manager, Messages, Console |
 
-## Key Pages
+**Admin status is set in the database only** — there are no hardcoded admin accounts or passwords in the code. See [DEPLOY.md](DEPLOY.md) for how to create admin users in Supabase.
 
-1. **Splash Screen** (`/`) - Initial welcome screen with Login and Register buttons
-2. **Login** (`/login`) - User authentication page
-3. **Announcements** (`/announcements`) - Main announcements feed
-4. **Registration** (`/register`) - Member registration
-5. **Feed** (`/feed`) - User social feed
-6. **Events** (`/events`) - Upcoming events with RSVP
-7. **Search** (`/search`) - Find and connect with members
-8. **Chat** (`/chat`) - Messaging interface
-9. **Profile** (`/profile` or `/profile/:userId`) - User profile page with dynamic routing for viewing any member's profile
-10. **Admin Profile** (`/admin-profile`) - Complete admin profile for Pernilla Ewarldsson
-11. **Notifications** (`/notifications`) - Notifications for posts, events, and updates
+---
 
-## Authentication
+## Key pages
 
-The app uses local storage for authentication and data persistence.
+| Route | Description |
+|---|---|
+| `/` | Splash screen (auto-navigates after 4s) |
+| `/login` | Login form |
+| `/register` | Invitation-only registration |
+| `/announcements` | Unified home feed (posts, events, ads) |
+| `/events` | Events calendar |
+| `/chat` | Member chat |
+| `/profile` | User profile |
+| `/admin` | Admin dashboard |
+| `/admin/create-post` | Create post / event / announcement |
+| `/admin/ads` | Advertisement manager |
+| `/admin/messages` | Private admin–member messaging |
+| `/admin-console` | Member management |
+| `/admin-profile` | Admin profile + invitation codes |
 
-### Login
-The landing page includes **Login** and **Register** buttons. Users must choose an option to proceed.
+---
 
-**Admin Login Credentials:**
-- **Eugene Akiwumi:**
-  - Email: `akiwumi@gmail.com`
-  - Password: `1234`
-- **Sokina Bobo:**
-  - Email: `sokina.bobo@example.com`
-  - Password: `demo123`
+## Invitation system
 
-**Local Authentication:**
-- All users register and login with email/password
-- Sessions are managed with localStorage for persistent login
-- Auto-login on app reload if session exists
-- Admin users have full access to all admin tools
+New members must have a valid invitation code to register. Codes are created by admins in the Admin Profile page. Each code can be set with:
+- A usage limit (e.g. single-use or multi-use)
+- An expiry date
 
-### Registration
-**Registration Process:**
-1. User provides email, password, and profile information
-2. Invitation code is validated against local storage
-3. User account is created in local storage
-4. User profile is saved to localStorage
-5. User is automatically logged in
+---
 
-**Required fields:**
-- Full Name
-- Email Address
-- Phone Number
-- Password
-- Invitation Code (generated by admin)
+## Sessions
 
-**Optional fields:**
-- Address
-- Social Links (Instagram, Facebook, Twitter, LinkedIn)
-- Profile Image (upload supported)
+Once logged in, users remain logged in across browser restarts until they explicitly log out. Session data is stored in `localStorage` (current) and will use Supabase Auth sessions when the backend is connected.
 
-**Invitation Codes:**
-- Admin users can generate invitation codes in the Admin Profile page
-- Codes can have max uses and expiration dates
-- Codes are tracked with usage statistics
+---
 
-## Admin Profile
+## Deployment
 
-A complete admin profile page has been created for Eugene Akiwumi (`/admin-profile`). The profile includes:
-- **Hero Section** with Mallorca beach background
-- **Live Profile Stats**: Dynamically calculated from database:
-  - **Events Hosted**: Count of events created by admin
-  - **Members**: Count of all non-admin users
-  - **Years Active**: Calculated from member since date (2018-03-15)
-  - **Countries**: Unique countries extracted from user addresses
-  - **Posts**: Count of posts authored by admin
-- **Social Links**: Instagram, Facebook, Twitter, LinkedIn
-- **Tabs**: About (bio, achievements, interests, languages), Friends, Events, Posts, Gallery
-- **Friends Section**: Facebook-style grid displaying all connected members with clickable profile cards (placed on its own line in the tabs)
-- **Achievements**: List of notable accomplishments
-- **Events Section**: All hosted events with images and details (stored locally)
-- **Posts Section**: All admin posts (stored locally)
-- **Gallery**: Photo gallery of past events
-
-The admin profile for Eugene Akiwumi is automatically available. All members are visible in the Friends tab. The Friends tab displays all members from the database and allows navigation to each member's profile.
-
-**Admin Tools:**
-- **Create Posts**: Create events, announcements, or regular posts with images, headlines, dates, and deadlines
-- **Invitation Codes**: Generate and manage invitation codes with max uses, expiration dates, and usage tracking
-- **User Management**: View all members, delete users, update user roles
-- **Content Management**: Delete posts, events, and announcements
-- **Statistics**: Live statistics calculated from database (events hosted, members connected, years active, countries represented, posts count)
-
-## Navigation Features
-
-- **Profile Navigation**: Click on any user's profile image or name in posts, feed, or friends list to navigate to their profile
-- **Friends List**: View friends in a Facebook-style grid layout with clickable profile cards
-- **Dynamic Routing**: User profiles support dynamic URLs (`/profile/:userId`) for easy sharing and direct access
-- **Admin Profile Links**: Clicking on admin profile images navigates to the dedicated admin profile page (`/admin-profile`)
-- **Bottom Navigation**: Fixed bottom navigation bar with PNG icon images:
-  - **Home** (`home.png`) - Navigate to announcements page
-  - **Events** (`calendar.png`) - View upcoming events
-  - **Search** (`search.png`) - Open search modal
-  - **Notifications** (`notification.png`) - View notifications with unread badge
-  - **Chat** (`chat.png`) - Access messaging interface
-  - **Profile** (`user.png`) - View user profile
-  - Icons have opacity states: inactive (60%), active (100%), hover (80%)
-  - Active page indicator shown below selected icon
-- **Search Bar**: Floating search modal accessible from the bottom navigation menu (search icon). The search bar:
-  - Appears as a centered floating modal above page content
-  - Always fully visible when activated
-  - Includes basic search input and submit button
-  - Advanced search options (Date, Location, Time filters) are hidden under an "Advanced Search" toggle button
-  - Advanced options expand smoothly when activated
-  - Modal can be closed via close button or backdrop click
-  - Body scroll is locked when search is open to prevent positioning issues
-- **Pull-to-Refresh**: Facebook-style pull-to-refresh functionality on main content pages. Features:
-  - Pull down from the top of the page to refresh content
-  - Custom refresh logo (`refreshlogo.jpg`) revealed progressively as you pull down
-  - Logo appears above the header bar and is revealed from bottom to top
-  - Visual feedback with animated arrow that rotates as you pull
-  - Text indicators: "Pull to refresh" → "Release to refresh" → "Refreshing..."
-  - Loading spinner appears during refresh
-  - Only activates when scrolled to the top of the page
-  - Available on Feed, Announcements, Events, and Notifications pages
-  - Smooth animations and natural pull resistance
-
-## Public Assets
-
-Place the following images in the `public/` directory:
-- `splash-screen.jpg` - Splash screen image (swapped from splash-screen.png)
-- `penilla-logo-3.png` - Header logo (also used as watermark on admin content)
-- `pernilla.png` - Admin profile picture
-- `mallorca-beach.jpg` - Admin profile hero image (beach scene)
-- `paddle.jpg` - Paddle Tennis Tournament announcement image
-- `safari.jpg` - Safari Adventure to Kenya announcement image
-- `refreshlogo.jpg` - Refresh logo revealed during pull-to-refresh gesture (also used as iOS home screen icon)
-- `manifest.json` - Web app manifest for PWA support and home screen installation
-- `appicon.png` - iOS home screen app icon
-- `home.png` - Bottom navigation home icon
-- `calendar.png` - Bottom navigation events/calendar icon
-- `search.png` - Bottom navigation search icon
-- `notification.png` - Bottom navigation notifications icon
-- `chat.png` - Bottom navigation chat icon
-- `user.png` - Bottom navigation profile/user icon
-
-## User Profiles
-
-User profiles are stored locally. The initial data includes six sample user profiles with complete information:
-- **Marcus von Habsburg** - Investment banker and wine connoisseur
-- **Isabella Rossi** - Italian fashion designer and art enthusiast
-- **James Chen** - Tech entrepreneur and photography enthusiast
-- **Sophie Laurent** - French chef and culinary instructor
-- **Thomas Müller** - German real estate developer
-- **Maria Santos** - Spanish marketing executive and event organizer
-
-Each profile includes:
-- Personalized biography
-- Profile image
-- Contact information
-- Social media links
-- Friend connections
-- Registered events
-- Liked posts
-
-All users are automatically friends with the admin (Pernilla Ewarldsson). Profiles are dynamically loaded from the database and support real-time updates.
-
-## Watermark Feature
-
-All admin-created content (posts, announcements, and events) automatically displays the `penilla-logo-3.png` watermark on the right side of images. The watermark:
-- Appears on 75% of the image area
-- Positioned on the right edge, vertically centered
-- Applied to all posts by the admin, all announcements, and all admin-created events
-- Uses 70% opacity for subtle branding
-
-## Mobile-First Design
-
-The app is optimized for mobile devices with a maximum width of 414px (iPhone Plus size).
-
-## iOS Home Screen Icon
-
-The app includes full iOS home screen icon support:
-- Uses `refreshlogo.jpg` as the home screen icon
-- Configured for all iOS device sizes (iPhone and iPad)
-- Supports "Add to Home Screen" functionality
-- App launches in standalone mode (no browser UI)
-- Theme color matches app design (#556B2F)
-- Portrait orientation locked for optimal mobile experience
-
-Users can add the app to their iPhone home screen by:
-1. Opening the app in Safari
-2. Tapping the Share button
-3. Selecting "Add to Home Screen"
-4. The app will appear with the refresh logo icon
-
-## Technologies
-
-- React 18
-- TypeScript
-- Vite
-- React Router DOM
-- localStorage - Browser-based data persistence
-- CSS Variables for theming
-
-## Local Data Storage
-
-The app uses browser localStorage for all data persistence:
-
-### Features
-- **Authentication**: User registration and login stored locally
-- **Data Persistence**: All data (users, posts, events, announcements) persists across browser sessions
-- **No Backend Required**: Works completely offline with no external dependencies
-- **Automatic Initialization**: Loads with sample data on first run
-
-### Data Management
-- **All data is stored locally**: Posts, events, announcements, users, and notifications are stored in localStorage
-- **Initial data**: Sample users, posts, events, and announcements are included in the codebase
-- **Live statistics**: Admin profile stats are calculated dynamically from local data
-- **Session persistence**: User sessions persist across page reloads
-
-### Admin Users
-- **Eugene Akiwumi**: Email `akiwumi@gmail.com`, Password `1234` (auto-admin)
-- **Sokina Bobo**: Email containing "sokina" and "bobo" (auto-admin)
-
-## License
-
-Private - Rendezvous Social Club
+See [DEPLOY.md](DEPLOY.md) for the full step-by-step guide covering:
+- Supabase database setup
+- Creating admin users (database-controlled, no hardcoded credentials)
+- Vercel deployment
+- Stripe integration (paid events)
+- Supabase Storage (image hosting)
