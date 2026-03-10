@@ -149,8 +149,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           const createdUser = await userService.createUser(newUser);
           // Set current user immediately so profile page can access it
           setCurrentUser(createdUser);
-          // Save to localStorage
-          localStorage.setItem('rendezvous_current_user', createdUser.id);
+          // Persist full session
+          localStorage.setItem('rendezvous_current_user', JSON.stringify(createdUser));
           
           // Create welcome notification
           try {
@@ -168,7 +168,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error creating user profile:', error);
           // Still set user locally even if save fails
           setCurrentUser(newUser);
-          localStorage.setItem('rendezvous_current_user', newUser.id);
+          localStorage.setItem('rendezvous_current_user', JSON.stringify(newUser));
         }
         return true;
       }
@@ -248,8 +248,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         
         if (userData) {
           setCurrentUser(userData);
-          // Save current user to localStorage
-          localStorage.setItem('rendezvous_current_user', userData.id);
+          // Persist full session
+          localStorage.setItem('rendezvous_current_user', JSON.stringify(userData));
           console.log('✓ Current user set in context');
           
           // Load user notifications
@@ -305,9 +305,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const updatedUser = await userService.updateUser(userId, updates);
       
-      // Update currentUser if it's the logged-in user
+      // Update currentUser if it's the logged-in user and refresh session
       if (currentUser && currentUser.id === userId) {
         setCurrentUser(updatedUser);
+        localStorage.setItem('rendezvous_current_user', JSON.stringify(updatedUser));
       }
       
       return updatedUser;

@@ -99,10 +99,10 @@ export const authService = {
     
     users.push(newUser);
     saveUsers();
-    
-    // Save current user to localStorage
-    localStorage.setItem(STORAGE_KEYS.currentUser, newUser.id);
-    
+
+    // Persist full user object as session
+    storage.set(STORAGE_KEYS.currentUser, newUser);
+
     return {
       user: {
         id: newUser.id,
@@ -158,15 +158,19 @@ export const authService = {
   },
 
   async signOut() {
-    localStorage.removeItem(STORAGE_KEYS.currentUser);
+    storage.remove(STORAGE_KEYS.currentUser);
   },
 
   async getCurrentUser() {
-    const currentUserId = localStorage.getItem(STORAGE_KEYS.currentUser);
-    if (!currentUserId) return null;
-    
-    const user = users.find(u => u.id === currentUserId);
-    return user ? {
+    // Read the full persisted user object
+    const sessionUser = storage.get<User | null>(STORAGE_KEYS.currentUser, null);
+    if (!sessionUser || !sessionUser.id) return null;
+
+    // Prefer the up-to-date record from the users array
+    const freshUser = users.find(u => u.id === sessionUser.id);
+    const user = freshUser || sessionUser;
+
+    return {
       id: user.id,
       email: user.email,
       user_metadata: {
@@ -174,17 +178,15 @@ export const authService = {
         phone: user.phone,
         address: user.address,
       },
-    } : null;
+    };
   },
 
   onAuthStateChange(callback: (user: any) => void) {
-    // Check for current user on initialization
-    const currentUser = this.getCurrentUser();
-    if (currentUser) {
-      callback(currentUser);
-    }
-    
-    // Return a subscription object (simplified)
+    // Fire the callback asynchronously so it picks up the awaited value
+    this.getCurrentUser().then(user => {
+      callback(user);
+    });
+
     return {
       data: {
         subscription: {
