@@ -6,7 +6,6 @@ import SearchBar from './components/SearchBar';
 import LoginPage from './pages/LoginPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import RegistrationPage from './pages/RegistrationPage';
-import FeedPage from './pages/FeedPage';
 import EventsPage from './pages/EventsPage';
 import SearchPage from './pages/SearchPage';
 import ChatPage from './pages/ChatPage';
@@ -15,11 +14,14 @@ import ProfilePage from './pages/ProfilePage';
 import AdminProfilePage from './pages/AdminProfilePage';
 import AdminConsolePage from './pages/AdminConsolePage';
 import AdminPage from './pages/AdminPage';
+import AdminAdsPage from './pages/AdminAdsPage';
+import AdminMessagesPage from './pages/AdminMessagesPage';
+import CreatePostPage from './pages/CreatePostPage';
 import './App.css';
 
 const AppContent = () => {
   const location = useLocation();
-  const hideNav = ['/', '/login', '/register', '/admin-console', '/admin'].includes(location.pathname);
+  const hideNav = ['/', '/login', '/register', '/admin-console', '/admin', '/admin/ads', '/admin/messages', '/admin/create-post'].includes(location.pathname);
 
   return (
     <>
@@ -28,7 +30,7 @@ const AppContent = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/announcements" element={<AnnouncementsPage />} />
         <Route path="/register" element={<RegistrationPage />} />
-        <Route path="/feed" element={<FeedPage />} />
+        <Route path="/feed" element={<Navigate to="/announcements" replace />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/chat" element={<ChatPage />} />
@@ -38,6 +40,9 @@ const AppContent = () => {
         <Route path="/admin-profile" element={<AdminProfilePage />} />
         <Route path="/admin-console" element={<AdminConsolePage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/ads" element={<AdminAdsPage />} />
+        <Route path="/admin/messages" element={<AdminMessagesPage />} />
+        <Route path="/admin/create-post" element={<CreatePostPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!hideNav && <SearchBar />}

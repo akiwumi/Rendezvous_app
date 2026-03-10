@@ -1,14 +1,14 @@
-import { Announcement, Event, User, Post } from '../types';
+import { User } from '../types';
 
-// Admin User - Eugene Akiwumi (Pebbles)
+// Admin User — Eugene Akiwumi (Pebbles)
 export const adminUser: User = {
   id: 'admin-1',
   fullName: 'Eugene Akiwumi',
   email: 'akiwumi@gmail.com',
-  phone: '+34 971 123 456',
+  phone: '',
   address: 'Palma de Mallorca, Spain',
   profileImage: '/pebbles.jpg',
-  friends: ['user-1', 'user-2', 'user-3', 'user-4', 'user-5', 'user-6'],
+  friends: [],
   isAdmin: true,
   socialLinks: {
     instagram: '@pebbles_rendezvous',
@@ -16,124 +16,19 @@ export const adminUser: User = {
     twitter: '@PebblesRSC',
     linkedin: 'eugene-akiwumi',
   },
-  likedPosts: ['post-1', 'post-2'],
-  registeredEvents: ['evt-1', 'evt-2', 'evt-3', 'evt-4', 'evt-5', 'evt-6', 'evt-7', 'evt-8'],
+  likedPosts: [],
+  registeredEvents: [],
 };
 
-// Dummy Users - Used as initial data for local storage
-export const dummyUsers: User[] = [
-  {
-    id: 'user-1',
-    fullName: 'Marcus von Habsburg',
-    email: 'marcus.vonhabsburg@email.com',
-    phone: '+34 971 234 567',
-    address: 'Palma de Mallorca, Spain',
-    bio: `Investment banker and wine connoisseur, Marcus relocated to Mallorca from Vienna five years ago. Passionate about fine wines, classical music, and sailing the Mediterranean. Member of Rendezvous since 2020, where I've discovered some of the best vintages and made lifelong friendships. Always up for a game of golf or a wine tasting evening.`,
-    profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-    friends: ['admin-1', 'user-2', 'user-3', 'user-4'],
-    socialLinks: {
-      instagram: '@marcus_vh',
-      linkedin: 'marcus-von-habsburg',
-    },
-    likedPosts: ['post-1'],
-    registeredEvents: ['evt-1', 'evt-3', 'evt-5'],
-  },
-  {
-    id: 'user-2',
-    fullName: 'Isabella Rossi',
-    email: 'isabella.rossi@email.com',
-    phone: '+34 971 345 678',
-    address: 'Valldemossa, Mallorca',
-    bio: `Italian fashion designer and art enthusiast. Moved to Mallorca three years ago to open my boutique in the heart of Valldemossa. Love attending art exhibitions, jazz nights, and yacht trips. The Rendezvous community has been incredibly welcoming, and I've met some of the most inspiring people here. Passionate about sustainable fashion and Mediterranean lifestyle.`,
-    profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-    friends: ['admin-1', 'user-1', 'user-3', 'user-5', 'user-6'],
-    socialLinks: {
-      instagram: '@isabella_rossi',
-      facebook: 'isabella.rossi',
-      twitter: '@IsabellaR',
-    },
-    likedPosts: ['post-1', 'post-2'],
-    registeredEvents: ['evt-2', 'evt-4', 'evt-6'],
-  },
-  {
-    id: 'user-3',
-    fullName: 'James Chen',
-    email: 'james.chen@email.com',
-    phone: '+34 971 456 789',
-    address: 'Deià, Mallorca',
-    bio: `Tech entrepreneur and photography enthusiast from San Francisco. Relocated to Deià six years ago for a slower pace of life while running my software company remotely. Love capturing the stunning Mallorcan landscapes through my lens and sharing moments with the Rendezvous community. Passionate about technology, photography, and Mediterranean cuisine. Always keen on photography workshops and wine tastings.`,
-    profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
-    friends: ['admin-1', 'user-1', 'user-2', 'user-4'],
-    socialLinks: {
-      instagram: '@jameschen',
-      linkedin: 'james-chen',
-      twitter: '@JamesChen',
-    },
-    likedPosts: ['post-2'],
-    registeredEvents: ['evt-1', 'evt-7', 'evt-8'],
-  },
-  {
-    id: 'user-4',
-    fullName: 'Sophie Laurent',
-    email: 'sophie.laurent@email.com',
-    phone: '+34 971 567 890',
-    address: 'Port de Sóller, Mallorca',
-    bio: `French chef and culinary instructor. Moved to Port de Sóller four years ago to open my cooking school and explore the rich Mallorcan gastronomy. Absolutely love the cooking masterclasses at Rendezvous - they're a perfect blend of learning and socializing. Passionate about authentic Mediterranean cuisine, local ingredients, and sharing culinary traditions. When I'm not cooking, you'll find me at yacht trips or beach BBQs.`,
-    profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
-    friends: ['admin-1', 'user-1', 'user-3', 'user-5'],
-    socialLinks: {
-      instagram: '@sophie_laurent',
-      facebook: 'sophie.laurent',
-      linkedin: 'sophie-laurent',
-    },
-    likedPosts: ['post-1', 'post-2'],
-    registeredEvents: ['evt-2', 'evt-3', 'evt-4', 'evt-5'],
-  },
-  {
-    id: 'user-5',
-    fullName: 'Thomas Müller',
-    email: 'thomas.mueller@email.com',
-    phone: '+34 971 678 901',
-    address: 'Alcúdia, Mallorca',
-    bio: `German real estate developer who fell in love with Mallorca's architecture and lifestyle. Moved here two years ago from Munich. Love the relaxed beach atmosphere and the exclusive events at Rendezvous. Passionate about sailing, golf, and enjoying the Mediterranean sunsets. The sunset beach BBQs are my favorite events - perfect for unwinding and connecting with great people.`,
-    profileImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-    friends: ['admin-1', 'user-2', 'user-4', 'user-6'],
-    socialLinks: {
-      instagram: '@thomas_mueller',
-      linkedin: 'thomas-mueller',
-    },
-    likedPosts: [],
-    registeredEvents: ['evt-6', 'evt-8'],
-  },
-  {
-    id: 'user-6',
-    fullName: 'Maria Santos',
-    email: 'maria.santos@email.com',
-    phone: '+34 971 789 012',
-    address: 'Calvià, Mallorca',
-    bio: `Spanish marketing executive and cultural event organizer. Born in Madrid, moved to Calvià three years ago for the vibrant social scene. Love the exclusive art exhibitions and jazz nights at Rendezvous - they remind me why I chose this island. Passionate about contemporary art, live music, and connecting people. The photography workshops are amazing for capturing Mallorca's beauty. Always up for networking and making new connections!`,
-    profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop',
-    friends: ['admin-1', 'user-2', 'user-5'],
-    socialLinks: {
-      instagram: '@maria_santos',
-      facebook: 'maria.santos',
-      twitter: '@MariaSantos',
-      linkedin: 'maria-santos',
-    },
-    likedPosts: ['post-1'],
-    registeredEvents: ['evt-1', 'evt-4', 'evt-7'],
-  },
-];
-
-// Admin Bio and Extended Info
+// Admin profile static content shown on the admin profile page
 export const adminProfile = {
   bio: `Founder and Director of Rendezvous Social Club, Eugene Akiwumi (known as Pebbles) has been the heart and soul of Mallorca's most exclusive private social club. With extensive experience in luxury hospitality and event management, Eugene brings a unique blend of warmth, professionalism, and Mediterranean charm to every gathering.
 
 Eugene's vision for Rendezvous is to create a space where like-minded individuals can connect, celebrate, and create lasting memories in one of the world's most beautiful destinations.`,
-  
+
   role: 'Founder & Director',
   memberSince: new Date('2018-03-15'),
-  
+
   achievements: [
     'Founded Rendezvous Social Club',
     'Organized over 500+ exclusive events',
@@ -141,7 +36,7 @@ Eugene's vision for Rendezvous is to create a space where like-minded individual
     'Featured in Mallorca Magazine\'s "Top 10 Influencers"',
     'Recipient of the Palma Hospitality Excellence Award 2023',
   ],
-  
+
   interests: [
     'Wine & Gastronomy',
     'Yacht Sailing',
@@ -150,11 +45,11 @@ Eugene's vision for Rendezvous is to create a space where like-minded individual
     'Travel & Cultural Exchange',
     'Interior Design',
   ],
-  
+
   languages: ['English', 'Spanish', 'German'],
-  
+
   quote: '"Life is too short for ordinary experiences. At Rendezvous, we create extraordinary moments that become cherished memories."',
-  
+
   stats: {
     eventsHosted: 156,
     membersConnected: 248,
@@ -163,170 +58,8 @@ Eugene's vision for Rendezvous is to create a space where like-minded individual
   },
 };
 
-// Dummy Announcements
-export const dummyAnnouncements: Announcement[] = [
-  {
-    id: 'ann-1',
-    title: 'Exclusive Summer Party',
-    content: 'Join us for an unforgettable summer soirée at our private beach club. Enjoy live music, premium cocktails, and gourmet cuisine under the stars. Dress code: Elegant summer attire. RSVP required.',
-    image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
-    link: 'https://rendezvous.club/events/summer-party',
-    date: new Date('2025-07-15T20:00:00'),
-    type: 'party',
-  },
-  {
-    id: 'ann-2',
-    title: 'Pizza Night at Villa Rendezvous',
-    content: 'Authentic Italian pizza night featuring wood-fired pizzas from our guest chef. Limited to 30 members. First come, first served. Wine pairing included.',
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800',
-    link: 'https://rendezvous.club/events/pizza-night',
-    date: new Date('2025-06-28T19:00:00'),
-    type: 'event',
-  },
-  {
-    id: 'ann-3',
-    title: 'Contemporary Art Exhibition',
-    content: 'Opening reception for our curated art exhibition featuring local and international artists. Private viewing for members only. Light refreshments served.',
-    image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800',
-    link: 'https://rendezvous.club/events/art-exhibition',
-    date: new Date('2025-07-05T18:00:00'),
-    type: 'exhibition',
-  },
-  {
-    id: 'ann-4',
-    title: 'Paddle Tennis Tournament',
-    content: 'Annual member paddle tennis tournament. Singles and doubles categories. Trophy presentation and celebratory dinner following the finals. Register by June 20th.',
-    image: '/paddle.jpg',
-    link: 'https://rendezvous.club/events/paddle-tournament',
-    date: new Date('2025-07-10T09:00:00'),
-    type: 'tournament',
-  },
-  {
-    id: 'ann-5',
-    title: 'Safari Adventure to Kenya',
-    content: 'Exclusive 7-day safari trip to the Maasai Mara. Experience the great migration, luxury tented camps, and world-class game viewing. Limited to 12 members. Early booking recommended.',
-    image: '/safari.jpg',
-    link: 'https://rendezvous.club/events/kenya-safari',
-    date: new Date('2025-08-20T00:00:00'),
-    type: 'trip',
-  },
-];
-
-// Dummy Events
-export const dummyEvents: Event[] = [
-  {
-    id: 'evt-1',
-    title: 'Wine Tasting Evening',
-    description: 'Join us for an exclusive wine tasting featuring rare vintages from renowned vineyards. Expert sommelier will guide us through the tasting notes.',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800',
-    date: new Date('2025-06-25T19:00:00'),
-    location: 'Club Lounge',
-    attendees: [],
-    maxAttendees: 25,
-    createdBy: adminUser.id,
-  },
-  {
-    id: 'evt-2',
-    title: 'Yacht Day Trip',
-    description: 'Spend the day cruising the Mediterranean on our private yacht. Swimming, snorkeling, and gourmet lunch included.',
-    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800',
-    date: new Date('2025-07-02T10:00:00'),
-    location: 'Port de Palma',
-    attendees: [],
-    maxAttendees: 20,
-    createdBy: adminUser.id,
-  },
-  {
-    id: 'evt-3',
-    title: 'Cooking Masterclass',
-    description: 'Learn to prepare authentic Mallorcan cuisine with our guest chef. Hands-on cooking experience followed by dinner.',
-    image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800',
-    date: new Date('2025-07-08T17:00:00'),
-    location: 'Club Kitchen',
-    attendees: [],
-    maxAttendees: 15,
-    createdBy: adminUser.id,
-  },
-  {
-    id: 'evt-4',
-    title: 'Jazz Night',
-    description: 'Live jazz performance by international artists. Cocktails and canapés served throughout the evening.',
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
-    date: new Date('2025-07-12T20:00:00'),
-    location: 'Main Hall',
-    attendees: [],
-    maxAttendees: 50,
-    createdBy: adminUser.id,
-  },
-  {
-    id: 'evt-5',
-    title: 'Golf Tournament',
-    description: 'Annual member golf tournament at the championship course. Prizes for winners and closest to pin.',
-    image: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800',
-    date: new Date('2025-07-18T08:00:00'),
-    location: 'Golf Club',
-    attendees: [],
-    maxAttendees: 40,
-    createdBy: adminUser.id,
-  },
-  {
-    id: 'evt-6',
-    title: 'Sunset Beach BBQ',
-    description: 'Relaxed evening on the beach with grilled specialties, live music, and bonfire. Family-friendly event.',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-    date: new Date('2025-07-22T19:00:00'),
-    location: 'Private Beach',
-    attendees: [],
-    maxAttendees: 60,
-    createdBy: adminUser.id,
-  },
-  {
-    id: 'evt-7',
-    title: 'Photography Workshop',
-    description: 'Learn landscape and portrait photography techniques with a professional photographer. Equipment provided.',
-    image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800',
-    date: new Date('2025-07-28T14:00:00'),
-    location: 'Club Gardens',
-    attendees: [],
-    maxAttendees: 12,
-    createdBy: adminUser.id,
-  },
-  {
-    id: 'evt-8',
-    title: 'Gala Dinner',
-    description: 'Formal gala dinner celebrating the club\'s anniversary. Black tie required. Live orchestra and dancing.',
-    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800',
-    date: new Date('2025-08-05T19:30:00'),
-    location: 'Grand Ballroom',
-    attendees: [],
-    maxAttendees: 100,
-    createdBy: adminUser.id,
-  },
-];
-
-// Dummy Posts for User Feed
-export const dummyPosts: Post[] = [
-  {
-    id: 'post-1',
-    authorId: adminUser.id,
-    authorName: adminUser.fullName,
-    authorImage: adminUser.profileImage,
-    content: 'Welcome to Rendezvous Social Club! We\'re thrilled to have you as part of our exclusive community. Looking forward to creating wonderful memories together.',
-    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800',
-    createdAt: new Date('2025-06-01T10:00:00'),
-    likes: [],
-    comments: [],
-  },
-  {
-    id: 'post-2',
-    authorId: adminUser.id,
-    authorName: adminUser.fullName,
-    authorImage: adminUser.profileImage,
-    content: 'Just returned from an amazing weekend at the club. The new facilities are absolutely stunning! Can\'t wait to see everyone at the upcoming events.',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
-    createdAt: new Date('2025-06-05T15:30:00'),
-    likes: [],
-    comments: [],
-  },
-];
-
+// Empty arrays — no dummy data
+export const dummyUsers: User[] = [];
+export const dummyPosts: never[] = [];
+export const dummyEvents: never[] = [];
+export const dummyAnnouncements: never[] = [];

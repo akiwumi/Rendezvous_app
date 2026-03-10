@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminProfile } from '../data/dummyData';
 import { useApp } from '../context/AppContext';
-import { userService, postService, eventService, announcementService, invitationService } from '../services/localDataService';
+import { userService, postService, invitationService } from '../services/localDataService';
 import { User } from '../types';
-import CreatePostModal from '../components/CreatePostModal';
 import PostInteractions from '../components/PostInteractions';
 import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
@@ -12,11 +11,10 @@ import './AdminProfilePage.css';
 
 const AdminProfilePage = () => {
   const navigate = useNavigate();
-  const { events, announcements, posts, setPosts, setEvents, setAnnouncements, currentUser } = useApp();
+  const { events, announcements, posts, currentUser } = useApp();
   const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'events' | 'posts' | 'gallery' | 'invitations'>('about');
   const [friends, setFriends] = useState<any[]>([]);
   const [adminPosts, setAdminPosts] = useState<any[]>([]);
-  const [showCreatePost, setShowCreatePost] = useState(false);
   const [invitationCodes, setInvitationCodes] = useState<any[]>([]);
   const [newCodeOptions, setNewCodeOptions] = useState({
     code: '',
@@ -314,7 +312,7 @@ const AdminProfilePage = () => {
           <div className="admin-profile-action-buttons">
             <button 
               className="create-post-button"
-              onClick={() => setShowCreatePost(true)}
+              onClick={() => navigate('/admin/create-post')}
             >
               ➕ Create Post
             </button>
@@ -559,7 +557,7 @@ const AdminProfilePage = () => {
                   <span className="posts-count">{stats.postsCount} {stats.postsCount === 1 ? 'post' : 'posts'}</span>
                   <button 
                     className="create-post-btn"
-                    onClick={() => setShowCreatePost(true)}
+                    onClick={() => navigate('/admin/create-post')}
                   >
                     + Create Post
                   </button>
@@ -872,63 +870,6 @@ const AdminProfilePage = () => {
 
       <BottomNav />
       
-      {/* Create Post Modal */}
-      {currentUser && (
-        <CreatePostModal
-          isOpen={showCreatePost}
-          onClose={() => setShowCreatePost(false)}
-          onSubmit={async (postData) => {
-            try {
-              // Create post in local storage
-              await postService.createPost({
-                ...postData,
-                id: `post-${Date.now()}`,
-                createdAt: new Date(),
-              } as any);
-              
-              // If it's an event or announcement, create those too
-              if (postData.postType === 'event' && postData.eventDate) {
-                await eventService.createEvent({
-                  id: `evt-${Date.now()}`,
-                  title: postData.headline || 'New Event',
-                  description: postData.content || '',
-                  image: postData.image,
-                  date: postData.eventDate,
-                  location: postData.location,
-                  attendees: [],
-                  createdBy: currentUser?.id || '',
-                });
-              } else if (postData.postType === 'announcement' && postData.eventDate) {
-                await announcementService.createAnnouncement({
-                  id: `ann-${Date.now()}`,
-                  title: postData.headline || 'New Announcement',
-                  content: postData.content || '',
-                  image: postData.image,
-                  date: postData.eventDate instanceof Date ? postData.eventDate : new Date(postData.eventDate),
-                  type: 'event',
-                });
-              }
-              
-              // Reload posts
-              const updatedPosts = await postService.getPosts();
-              setPosts(updatedPosts);
-              
-              // Reload events and announcements if needed
-              if (postData.postType === 'event') {
-                const updatedEvents = await eventService.getEvents();
-                setEvents(updatedEvents);
-              } else if (postData.postType === 'announcement') {
-                const updatedAnnouncements = await announcementService.getAnnouncements();
-                setAnnouncements(updatedAnnouncements);
-              }
-            } catch (error) {
-              console.error('Error creating post:', error);
-              alert('Failed to create post. Please try again.');
-            }
-          }}
-          currentUser={currentUser}
-        />
-      )}
     </div>
   );
 };

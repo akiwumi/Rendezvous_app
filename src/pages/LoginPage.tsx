@@ -24,7 +24,7 @@ const LoginPage = () => {
       const email = formData.email.trim().toLowerCase();
       const success = await loginUser(email, formData.password);
       if (success) {
-        navigate('/feed', { replace: true });
+        navigate('/announcements', { replace: true });
       } else {
         setError('Invalid email or password. Please try again.');
       }

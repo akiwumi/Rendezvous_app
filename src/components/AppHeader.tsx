@@ -1,25 +1,56 @@
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 import './AppHeader.css';
 
+const PAGE_TITLES: Record<string, string> = {
+  '/feed': 'Feed',
+  '/announcements': 'Announcements',
+  '/events': 'Events',
+  '/search': 'Search',
+  '/chat': 'Chat',
+  '/notifications': 'Notifications',
+  '/profile': 'Profile',
+  '/admin-profile': 'Admin Profile',
+  '/admin-console': 'Console',
+  '/admin': 'Dashboard',
+  '/register': 'Register',
+};
+
 const AppHeader = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { logoutUser, currentUser } = useApp();
+
+  const title = PAGE_TITLES[location.pathname] ??
+    (location.pathname.startsWith('/profile/') ? 'Profile' : 'Rendezvous');
+
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <header className="app-header">
-      <img 
-        src="/penilla-logo-3.png" 
-        alt="Rendezvous Logo" 
-        className="app-logo"
-        onError={(e) => {
-          // Fallback if image doesn't exist
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          const fallback = document.createElement('div');
-          fallback.className = 'logo-fallback';
-          fallback.textContent = 'Rendezvous';
-          target.parentElement?.appendChild(fallback);
-        }}
-      />
+      <div className="app-header-spacer" />
+      <h1 className="app-header-title">{title}</h1>
+      {currentUser ? (
+        <button
+          className="app-header-logout"
+          onClick={handleLogout}
+          aria-label="Log out"
+          title="Log out"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      ) : (
+        <div className="app-header-spacer" />
+      )}
     </header>
   );
 };
 
 export default AppHeader;
-

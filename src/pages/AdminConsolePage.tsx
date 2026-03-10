@@ -230,9 +230,9 @@ const AdminConsolePage = () => {
               <div className="quick-actions">
                 <h3 className="section-subtitle">Quick Actions</h3>
                 <div className="quick-actions-grid">
-                  <button 
+                  <button
                     className="quick-action-btn"
-                    onClick={() => navigate('/admin-profile')}
+                    onClick={() => navigate('/admin/create-post')}
                   >
                     ➕ Create Post
                   </button>

@@ -13,7 +13,7 @@
   align-items: center;
   padding: var(--spacing-xs) var(--spacing-sm);
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--spacing-xs));
-  z-index: var(--z-fixed);
+  z-index: 9000;
   margin: 0;
   box-shadow: var(--shadow-nav);
 }

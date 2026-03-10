@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { userService, postService, eventService, announcementService, invitationService } from '../services/localDataService';
-import CreatePostModal from '../components/CreatePostModal';
+import { userService, postService, eventService, announcementService, invitationService, advertisementService } from '../services/localDataService';
 import './AdminPage.css';
 
 interface AdminStats {
@@ -12,11 +11,12 @@ interface AdminStats {
   totalAnnouncements: number;
   activeInvitations: number;
   newMembersThisMonth: number;
+  activeAds: number;
 }
 
 const AdminPage = () => {
   const navigate = useNavigate();
-  const { currentUser, posts, events, announcements, setPosts, setEvents, setAnnouncements } = useApp();
+  const { currentUser, posts, events } = useApp();
   const [stats, setStats] = useState<AdminStats>({
     totalMembers: 0,
     totalPosts: 0,
@@ -24,9 +24,9 @@ const AdminPage = () => {
     totalAnnouncements: 0,
     activeInvitations: 0,
     newMembersThisMonth: 0,
+    activeAds: 0,
   });
   const [recentMembers, setRecentMembers] = useState<any[]>([]);
-  const [showCreatePost, setShowCreatePost] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Guard: redirect non-admins
@@ -39,16 +39,15 @@ const AdminPage = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const [users, allPosts, allEvents, allAnnouncements, codes] = await Promise.all([
+        const [users, allPosts, allEvents, allAnnouncements, codes, allAds] = await Promise.all([
           userService.getAllUsers(),
           postService.getPosts(),
           eventService.getEvents(),
           announcementService.getAnnouncements(),
           invitationService.getAllInvitationCodes(),
+          advertisementService.getActive(),
         ]);
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const nonAdmins = users.filter(u => !u.isAdmin);
 
         setRecentMembers(nonAdmins.slice(-5).reverse());
@@ -59,7 +58,8 @@ const AdminPage = () => {
           totalEvents: allEvents.length,
           totalAnnouncements: allAnnouncements.length,
           activeInvitations: codes.filter((c: any) => c.isActive || c.active).length,
-          newMembersThisMonth: nonAdmins.length, // simplified
+          newMembersThisMonth: nonAdmins.length,
+          activeAds: allAds.length,
         });
       } catch (error) {
         console.error('Error loading admin stats:', error);
@@ -152,6 +152,13 @@ const AdminPage = () => {
                   <span className="admin-stat-label">Active Invites</span>
                 </div>
               </div>
+              <div className="admin-stat-card ads">
+                <div className="admin-stat-icon">📣</div>
+                <div className="admin-stat-info">
+                  <span className="admin-stat-value">{stats.activeAds}</span>
+                  <span className="admin-stat-label">Live Ads</span>
+                </div>
+              </div>
             </div>
           )}
         </section>
@@ -160,7 +167,7 @@ const AdminPage = () => {
         <section className="admin-section">
           <h2 className="admin-section-title">Quick Actions</h2>
           <div className="admin-actions-grid">
-            <button className="admin-action-tile create-post" onClick={() => setShowCreatePost(true)}>
+            <button className="admin-action-tile create-post" onClick={() => navigate('/admin/create-post')}>
               <span className="admin-action-tile-icon">✍️</span>
               <span className="admin-action-tile-label">Create Post</span>
             </button>
@@ -183,6 +190,14 @@ const AdminPage = () => {
             <button className="admin-action-tile console" onClick={() => navigate('/admin-console')}>
               <span className="admin-action-tile-icon">⚙️</span>
               <span className="admin-action-tile-label">Console</span>
+            </button>
+            <button className="admin-action-tile messages" onClick={() => navigate('/admin/messages')}>
+              <span className="admin-action-tile-icon">💬</span>
+              <span className="admin-action-tile-label">Messages</span>
+            </button>
+            <button className="admin-action-tile ads-manager" onClick={() => navigate('/admin/ads')}>
+              <span className="admin-action-tile-icon">📣</span>
+              <span className="admin-action-tile-label">Ad Manager</span>
             </button>
           </div>
         </section>
@@ -293,53 +308,6 @@ const AdminPage = () => {
 
       </div>
 
-      {/* Create Post Modal */}
-      {currentUser && (
-        <CreatePostModal
-          isOpen={showCreatePost}
-          onClose={() => setShowCreatePost(false)}
-          onSubmit={async (postData) => {
-            try {
-              await postService.createPost({
-                ...postData,
-                id: `post-${Date.now()}`,
-                createdAt: new Date(),
-              } as any);
-              if (postData.postType === 'event' && postData.eventDate) {
-                await eventService.createEvent({
-                  id: `evt-${Date.now()}`,
-                  title: postData.headline || 'New Event',
-                  description: postData.content || '',
-                  image: postData.image,
-                  date: postData.eventDate,
-                  location: postData.location,
-                  attendees: [],
-                  createdBy: currentUser.id,
-                });
-                const updatedEvents = await eventService.getEvents();
-                setEvents(updatedEvents);
-              } else if (postData.postType === 'announcement' && postData.eventDate) {
-                await announcementService.createAnnouncement({
-                  id: `ann-${Date.now()}`,
-                  title: postData.headline || 'New Announcement',
-                  content: postData.content || '',
-                  image: postData.image,
-                  date: postData.eventDate instanceof Date ? postData.eventDate : new Date(postData.eventDate),
-                  type: 'event',
-                });
-                const updatedAnnouncements = await announcementService.getAnnouncements();
-                setAnnouncements(updatedAnnouncements);
-              }
-              const updatedPosts = await postService.getPosts();
-              setPosts(updatedPosts);
-              setShowCreatePost(false);
-            } catch (error) {
-              console.error('Error creating post:', error);
-            }
-          }}
-          currentUser={currentUser}
-        />
-      )}
     </div>
   );
 };

@@ -3,8 +3,14 @@
  * Replaces Supabase with in-memory storage and localStorage persistence
  */
 
-import { User, Post, Event, Notification, Announcement } from '../types';
-import { adminUser, dummyUsers, dummyPosts, dummyEvents, dummyAnnouncements } from '../data/dummyData';
+import { User, Post, Event, Notification, Announcement, Advertisement, AdminMessage } from '../types';
+import { adminUser } from '../data/dummyData';
+
+// Hardcoded admin credentials
+const ADMIN_CREDENTIALS: Record<string, string> = {
+  'akiwumi@gmail.com': 'Rendezvous1!',
+  'sokina.bobo@example.com': 'Admin2024!',
+};
 
 // Storage keys for localStorage
 const STORAGE_KEYS = {
@@ -15,6 +21,8 @@ const STORAGE_KEYS = {
   notifications: 'rendezvous_notifications',
   currentUser: 'rendezvous_current_user',
   invitationCodes: 'rendezvous_invitation_codes',
+  advertisements: 'rendezvous_advertisements',
+  adminMessages: 'rendezvous_admin_messages',
 };
 
 // Helper functions for localStorage
@@ -45,12 +53,12 @@ const storage = {
 
 // Initialize data from localStorage or use defaults
 const initializeData = () => {
-  const users = storage.get<User[]>(STORAGE_KEYS.users, [adminUser, ...dummyUsers]);
-  const posts = storage.get<Post[]>(STORAGE_KEYS.posts, dummyPosts);
-  const events = storage.get<Event[]>(STORAGE_KEYS.events, dummyEvents);
-  const announcements = storage.get<Announcement[]>(STORAGE_KEYS.announcements, dummyAnnouncements);
+  const users = storage.get<User[]>(STORAGE_KEYS.users, [adminUser]);
+  const posts = storage.get<Post[]>(STORAGE_KEYS.posts, []);
+  const events = storage.get<Event[]>(STORAGE_KEYS.events, []);
+  const announcements = storage.get<Announcement[]>(STORAGE_KEYS.announcements, []);
   const notifications = storage.get<Notification[]>(STORAGE_KEYS.notifications, []);
-  
+
   return { users, posts, events, announcements, notifications };
 };
 
@@ -115,16 +123,21 @@ export const authService = {
   },
 
   async signIn(email: string, password: string) {
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
+    const normalizedEmail = email.toLowerCase();
+    const user = users.find(u => u.email.toLowerCase() === normalizedEmail);
+
     if (!user) {
       throw new Error('Invalid login credentials');
     }
-    
-    // Simple password check (in real app, passwords would be hashed)
-    // For demo purposes, accept any password for existing users
-    // Admin users: akiwumi@gmail.com / 1234, sokina.bobo@example.com / demo123
-    
+
+    // Admin accounts require exact password match
+    if (user.isAdmin) {
+      const expectedPassword = ADMIN_CREDENTIALS[normalizedEmail];
+      if (!expectedPassword || password !== expectedPassword) {
+        throw new Error('Invalid login credentials');
+      }
+    }
+
     return {
       user: {
         id: user.id,
@@ -221,6 +234,32 @@ export const userService = {
     if (index === -1) throw new Error('User not found');
     users.splice(index, 1);
     saveUsers();
+  },
+
+  async addFriend(userId: string, friendId: string) {
+    const userIdx = users.findIndex(u => u.id === userId);
+    const friendIdx = users.findIndex(u => u.id === friendId);
+    if (userIdx === -1 || friendIdx === -1) throw new Error('User not found');
+    if (!users[userIdx].friends.includes(friendId)) {
+      users[userIdx].friends.push(friendId);
+    }
+    if (!users[friendIdx].friends.includes(userId)) {
+      users[friendIdx].friends.push(userId);
+    }
+    saveUsers();
+    return users[userIdx];
+  },
+
+  async removeFriend(userId: string, friendId: string) {
+    const userIdx = users.findIndex(u => u.id === userId);
+    const friendIdx = users.findIndex(u => u.id === friendId);
+    if (userIdx === -1) throw new Error('User not found');
+    users[userIdx].friends = users[userIdx].friends.filter(id => id !== friendId);
+    if (friendIdx !== -1) {
+      users[friendIdx].friends = users[friendIdx].friends.filter(id => id !== userId);
+    }
+    saveUsers();
+    return users[userIdx];
   },
 };
 
@@ -473,5 +512,115 @@ export const setLocalData = (data: { users?: User[], posts?: Post[], events?: Ev
   if (data.events) { events = data.events; saveEvents(); }
   if (data.announcements) { announcements = data.announcements; saveAnnouncements(); }
   if (data.notifications) { notifications = data.notifications; saveNotifications(); }
+};
+
+// Advertisement data
+let advertisements: Advertisement[] = storage.get<Advertisement[]>(STORAGE_KEYS.advertisements, []);
+const saveAdvertisements = () => storage.set(STORAGE_KEYS.advertisements, advertisements);
+
+export const advertisementService = {
+  async getAll(): Promise<Advertisement[]> {
+    return advertisements;
+  },
+
+  async getActive(): Promise<Advertisement[]> {
+    const now = new Date();
+    return advertisements.filter(ad =>
+      ad.isActive &&
+      new Date(ad.startDate) <= now &&
+      new Date(ad.endDate) >= now
+    );
+  },
+
+  async create(ad: Omit<Advertisement, 'id' | 'impressions' | 'clicks' | 'createdAt'>): Promise<Advertisement> {
+    const newAd: Advertisement = {
+      ...ad,
+      id: generateId('ad'),
+      impressions: 0,
+      clicks: 0,
+      createdAt: new Date(),
+    };
+    advertisements.push(newAd);
+    saveAdvertisements();
+    return newAd;
+  },
+
+  async update(id: string, updates: Partial<Advertisement>): Promise<Advertisement> {
+    const index = advertisements.findIndex(a => a.id === id);
+    if (index === -1) throw new Error('Ad not found');
+    advertisements[index] = { ...advertisements[index], ...updates };
+    saveAdvertisements();
+    return advertisements[index];
+  },
+
+  async delete(id: string): Promise<void> {
+    advertisements = advertisements.filter(a => a.id !== id);
+    saveAdvertisements();
+  },
+
+  async trackImpression(id: string): Promise<void> {
+    const ad = advertisements.find(a => a.id === id);
+    if (ad) {
+      ad.impressions += 1;
+      saveAdvertisements();
+    }
+  },
+
+  async trackClick(id: string): Promise<void> {
+    const ad = advertisements.find(a => a.id === id);
+    if (ad) {
+      ad.clicks += 1;
+      saveAdvertisements();
+    }
+  },
+};
+
+// Admin Messages data
+let adminMessages: AdminMessage[] = storage.get<AdminMessage[]>(STORAGE_KEYS.adminMessages, []);
+const saveAdminMessages = () => storage.set(STORAGE_KEYS.adminMessages, adminMessages);
+
+export const adminMessageService = {
+  async getThreads(adminId: string): Promise<{ userId: string; lastMessage: AdminMessage; unread: number }[]> {
+    const msgs = adminMessages.filter(m => m.adminId === adminId);
+    const userMap = new Map<string, AdminMessage[]>();
+    msgs.forEach(m => {
+      const key = m.userId;
+      if (!userMap.has(key)) userMap.set(key, []);
+      userMap.get(key)!.push(m);
+    });
+    return Array.from(userMap.entries()).map(([userId, messages]) => {
+      const sorted = messages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      return {
+        userId,
+        lastMessage: sorted[0],
+        unread: sorted.filter(m => !m.read && m.senderId !== adminId).length,
+      };
+    });
+  },
+
+  async getThread(adminId: string, userId: string): Promise<AdminMessage[]> {
+    return adminMessages
+      .filter(m => m.adminId === adminId && m.userId === userId)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  },
+
+  async send(msg: Omit<AdminMessage, 'id' | 'timestamp' | 'read'>): Promise<AdminMessage> {
+    const newMsg: AdminMessage = {
+      ...msg,
+      id: generateId('amsg'),
+      timestamp: new Date(),
+      read: false,
+    };
+    adminMessages.push(newMsg);
+    saveAdminMessages();
+    return newMsg;
+  },
+
+  async markRead(adminId: string, userId: string): Promise<void> {
+    adminMessages
+      .filter(m => m.adminId === adminId && m.userId === userId && m.senderId !== adminId)
+      .forEach(m => { m.read = true; });
+    saveAdminMessages();
+  },
 };
 

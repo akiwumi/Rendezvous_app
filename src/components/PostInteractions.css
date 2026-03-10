@@ -28,20 +28,15 @@
 
 .post-actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-}
-
-.post-card .post-actions {
   flex-direction: row;
-  justify-content: flex-start;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .action-btn {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: var(--spacing-xs);
   background: none;
@@ -50,14 +45,8 @@
   cursor: pointer;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  padding: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
   transition: var(--transition-fast);
-  min-width: 50px;
-}
-
-.post-card .action-btn {
-  flex-direction: row;
-  min-width: auto;
 }
 
 .action-btn:hover {

@@ -12,16 +12,20 @@ const Stories = () => {
 
   useEffect(() => {
     const loadUsers = async () => {
+      if (!currentUser) return;
       try {
         const allUsers = await userService.getAllUsers();
-        // Limit to first 8 users for stories
-        setUsers(allUsers.slice(0, 8));
+        const friendIds = currentUser.friends || [];
+        // Show friends first, then fill remaining slots with non-friends (up to 10 total)
+        const friends = allUsers.filter(u => friendIds.includes(u.id) && u.id !== currentUser.id);
+        const others = allUsers.filter(u => !friendIds.includes(u.id) && u.id !== currentUser.id && !u.isAdmin);
+        setUsers([...friends, ...others].slice(0, 10));
       } catch (error) {
         console.error('Error loading users for stories:', error);
       }
     };
     loadUsers();
-  }, []);
+  }, [currentUser]);
 
   const handleStoryClick = async (userId: string) => {
     try {

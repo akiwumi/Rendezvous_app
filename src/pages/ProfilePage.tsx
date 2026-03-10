@@ -114,8 +114,8 @@ const ProfilePage = () => {
       reader.onloadend = async () => {
         try {
           const base64Image = reader.result as string;
-          const updatedUser = await updateUser(currentUser.id, { profileImage: base64Image });
-          setProfileUser(updatedUser);
+          await updateUser(currentUser.id, { profileImage: base64Image });
+          setProfileUser(prev => prev ? { ...prev, profileImage: base64Image } : prev);
           if (fileInputRef.current) fileInputRef.current.value = '';
         } catch {
           alert('Failed to update profile image. Please try again.');
@@ -168,6 +168,22 @@ const ProfilePage = () => {
     currentUser?.registeredEvents?.includes(event.id) ||
     event.attendees.includes(profile.id)
   );
+
+  const isFriend = currentUser ? (currentUser.friends || []).includes(profile.id) : false;
+
+  const handleFriendToggle = async () => {
+    if (!currentUser) return;
+    try {
+      const updated = isFriend
+        ? await userService.removeFriend(currentUser.id, profile.id)
+        : await userService.addFriend(currentUser.id, profile.id);
+      // Sync context so Stories carousel re-renders with updated friends list
+      await updateUser(currentUser.id, { friends: updated.friends });
+      setAllUsers(prev => prev.map(u => u.id === currentUser.id ? { ...u, friends: updated.friends } : u));
+    } catch (error) {
+      console.error('Friend toggle error:', error);
+    }
+  };
 
   const heroImage = 'https://www.cunard.com/content/dam/cunard/marketing-assets/cunard-stories/mediterranean/Mediterranean_Beach_1480x832.jpg.image.1480.832.low.jpg';
 
@@ -275,7 +291,12 @@ const ProfilePage = () => {
           {/* Add friend / feed action */}
           <div className="profile-identity-actions">
             {!isAdmin && currentUser && currentUser.id !== profile.id && (
-              <button className="profile-follow-btn">+ Connect</button>
+              <button
+                className={`profile-follow-btn${isFriend ? ' connected' : ''}`}
+                onClick={handleFriendToggle}
+              >
+                {isFriend ? '✓ Connected' : '+ Connect'}
+              </button>
             )}
             <button className="profile-feed-btn" onClick={() => navigate('/feed')}>
               Feed

@@ -44,6 +44,10 @@ export interface Post {
   deadline?: Date; // Registration deadline
   location?: string; // Location for events
   interestedUsers?: string[]; // User IDs who registered interest
+  isPaid?: boolean;
+  ticketPrice?: number; // in pence/cents
+  ticketCurrency?: 'GBP' | 'EUR' | 'USD';
+  paymentType?: 'one-time' | 'donation' | 'free';
   createdAt: Date;
   likes: string[]; // User IDs who liked
   comments: Comment[];
@@ -100,13 +104,47 @@ export interface Chat {
 
 export interface Notification {
   id: string;
+  userId?: string;
   type: 'post' | 'event' | 'announcement' | 'friend' | 'comment' | 'like' | 'message';
   title: string;
   message: string;
   relatedUserId?: string;
   relatedUserName?: string;
   relatedUserImage?: string;
-  relatedItemId?: string; // Post ID, Event ID, etc.
+  relatedItemId?: string;
+  timestamp: Date;
+  read: boolean;
+}
+
+export interface Advertisement {
+  id: string;
+  title: string;
+  description?: string;
+  advertiserName: string;
+  advertiserUrl: string;        // external website link
+  mediaType: 'image' | 'video';
+  mediaUrl: string;             // external URL (CDN, YouTube, Vimeo, direct mp4)
+  thumbnailUrl?: string;        // video preview image
+  allowFullscreen: boolean;
+  startDate: Date;
+  endDate: Date;
+  frequency: number;            // show ad every N announcements (e.g. 3 = after every 3rd post)
+  isActive: boolean;
+  impressions: number;
+  clicks: number;
+  paymentStatus: 'pending' | 'paid' | 'cancelled';
+  paymentAmount: number;        // in pence/cents, for Stripe later
+  createdAt: Date;
+  createdBy: string;
+}
+
+export interface AdminMessage {
+  id: string;
+  adminId: string;
+  userId: string;               // the member being messaged
+  senderId: string;             // who sent this message (admin or user)
+  senderName: string;
+  content: string;
   timestamp: Date;
   read: boolean;
 }

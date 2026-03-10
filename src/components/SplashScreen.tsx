@@ -11,7 +11,7 @@ const SplashScreen = () => {
   useEffect(() => {
     // If already logged in, skip straight to feed
     if (!loading && currentUser) {
-      navigate('/feed', { replace: true });
+      navigate('/announcements', { replace: true });
       return;
     }
 
