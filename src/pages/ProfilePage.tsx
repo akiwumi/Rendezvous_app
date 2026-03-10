@@ -105,8 +105,14 @@ const ProfilePage = () => {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !currentUser) return;
-    if (!file.type.startsWith('image/')) { alert('Please select an image file'); return; }
-    if (file.size > 10 * 1024 * 1024) { alert('Image must be under 10MB'); return; }
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (JPEG, PNG, GIF, or WebP).');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image must be under 10MB. Please choose a smaller file.');
+      return;
+    }
 
     setIsUploadingImage(true);
     try {
@@ -114,8 +120,10 @@ const ProfilePage = () => {
       await updateUser(currentUser.id, { profileImage: url });
       setProfileUser(prev => prev ? { ...prev, profileImage: url } : prev);
       if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch {
-      alert('Failed to update profile image. Please try again.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      console.error('Profile image upload error:', err);
+      alert(`Failed to upload profile image: ${msg}. Make sure storage buckets are set up in Supabase (see supabase/migrations).`);
     } finally {
       setIsUploadingImage(false);
     }

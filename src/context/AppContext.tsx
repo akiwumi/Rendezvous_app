@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Post, Event, Notification, Announcement } from '../types';
 // Local data service replaces Supabase
-import { authService, userService, postService, eventService, notificationService, invitationService, adminService } from '../services/localDataService';
+import { authService, userService, postService, eventService, notificationService, invitationService, adminService, storageService } from '../services/localDataService';
 
 interface AppContextType {
   currentUser: User | null;
@@ -134,6 +134,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       // Create user profile
       if (authData?.user) {
+        let profileImageUrl = userData.profileImage || '';
+        // If profile image is a data URL (from registration form), upload to Supabase storage
+        if (userData.profileImage && userData.profileImage.startsWith('data:')) {
+          try {
+            const blob = await fetch(userData.profileImage).then((r) => r.blob());
+            const ext = blob.type.split('/')[1] || 'png';
+            const file = new File([blob], `avatar.${ext}`, { type: blob.type });
+            profileImageUrl = await storageService.uploadAvatar(file, authData.user.id);
+          } catch (uploadError) {
+            console.error('Profile image upload failed:', uploadError);
+            profileImageUrl = '';
+          }
+        }
         const newUser: User = {
           id: authData.user.id,
           fullName: userData.fullName!,
@@ -141,7 +154,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           phone: userData.phone!,
           address: userData.address,
           socialLinks: userData.socialLinks,
-          profileImage: userData.profileImage,
+          profileImage: profileImageUrl,
           friends: [],
         };
 
