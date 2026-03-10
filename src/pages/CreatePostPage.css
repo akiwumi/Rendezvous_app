@@ -290,6 +290,25 @@
   justify-content: center;
 }
 
+/* ─── Document preview ────────────────────────────────────────────────────── */
+.cp-doc-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f0f4ec;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #2d4a1a;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.cp-doc-preview span:first-child {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
 /* ─── Paid event ──────────────────────────────────────────────────────────── */
 .cp-paid-section {
   background: #fff;

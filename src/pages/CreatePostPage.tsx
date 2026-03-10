@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { postService, eventService, announcementService } from '../services/localDataService';
+import { postService, eventService, announcementService, storageService } from '../services/localDataService';
 import './CreatePostPage.css';
 
 type PostType = 'regular' | 'event' | 'announcement';
@@ -20,9 +20,12 @@ const CreatePostPage = () => {
   const [postType, setPostType] = useState<PostType>('regular');
   const [headline, setHeadline] = useState('');
   const [content, setContent] = useState('');
-  const [image, setImage] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState('');
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);      // uploaded URL
+  const [mediaFileName, setMediaFileName] = useState('');             // display name
+  const [mediaIsVideo, setMediaIsVideo] = useState(false);
+  const [externalUrl, setExternalUrl] = useState('');
   const [imageMode, setImageMode] = useState<'upload' | 'url'>('upload');
+  const [uploading, setUploading] = useState(false);
 
   // Event / announcement fields
   const [eventDate, setEventDate] = useState('');
@@ -42,14 +45,33 @@ const CreatePostPage = () => {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState('');
 
-  const effectiveImage = imageMode === 'url' ? imageUrl || null : image;
+  const effectiveMedia = imageMode === 'url' ? externalUrl || null : mediaUrl;
+  const effectiveIsVideo = imageMode === 'url'
+    ? storageService.isVideoUrl(externalUrl)
+    : mediaIsVideo;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setImage(reader.result as string);
-    reader.readAsDataURL(file);
+    if (!file || !currentUser) return;
+
+    const maxMb = file.type.startsWith('video/') ? 200 : 25;
+    if (file.size > maxMb * 1024 * 1024) {
+      setError(`File too large. Max size is ${maxMb}MB.`);
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+    try {
+      const url = await storageService.uploadPostMedia(file, currentUser.id);
+      setMediaUrl(url);
+      setMediaFileName(file.name);
+      setMediaIsVideo(file.type.startsWith('video/'));
+    } catch (err: any) {
+      setError(err.message || 'Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const insertEmoji = (emoji: string) => setContent(prev => prev + emoji);
@@ -81,7 +103,7 @@ const CreatePostPage = () => {
         authorImage: currentUser.profileImage,
         headline: headline.trim() || undefined,
         content: content.trim(),
-        image: effectiveImage || undefined,
+        image: effectiveMedia || undefined,
         postType,
         location: location.trim() || undefined,
         eventDate: buildEventDate(),
@@ -104,7 +126,7 @@ const CreatePostPage = () => {
           id: `evt-${Date.now()}`,
           title: headline || content.substring(0, 50),
           description: content,
-          image: effectiveImage || undefined,
+          image: effectiveMedia || undefined,
           date: buildEventDate()!,
           location: location || undefined,
           attendees: [],
@@ -120,7 +142,7 @@ const CreatePostPage = () => {
           id: `ann-${Date.now()}`,
           title: headline || content.substring(0, 60),
           content: content,
-          image: effectiveImage || undefined,
+          image: effectiveMedia || undefined,
           date: buildEventDate() || new Date(),
           type: 'event',
         });
@@ -147,7 +169,7 @@ const CreatePostPage = () => {
     return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
-  const isReady = content.trim().length > 0 && (postType === 'regular' || !!eventDate);
+  const isReady = content.trim().length > 0 && (postType === 'regular' || !!eventDate) && !uploading;
 
   return (
     <div className="cp-page">
@@ -213,26 +235,46 @@ const CreatePostPage = () => {
             </div>
           </div>
 
-          {/* Image */}
+          {/* Media */}
           <div className="cp-section">
-            <label className="cp-label">Image</label>
+            <label className="cp-label">Image / Video / Document</label>
             <div className="cp-image-tabs">
               <button className={`cp-image-tab${imageMode === 'upload' ? ' active' : ''}`} onClick={() => setImageMode('upload')}>📁 Upload file</button>
               <button className={`cp-image-tab${imageMode === 'url' ? ' active' : ''}`} onClick={() => setImageMode('url')}>🔗 URL</button>
             </div>
             {imageMode === 'upload' ? (
               <label className="cp-upload-area">
-                <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
-                {image ? (
+                <input
+                  type="file"
+                  accept="image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                  disabled={uploading}
+                />
+                {uploading ? (
+                  <div className="cp-upload-placeholder">
+                    <span className="cp-upload-icon">⏳</span>
+                    <p>Uploading…</p>
+                  </div>
+                ) : mediaUrl ? (
                   <div className="cp-image-preview-wrap">
-                    <img src={image} alt="Preview" className="cp-image-preview" />
-                    <button className="cp-image-remove" onClick={e => { e.preventDefault(); setImage(null); }}>✕</button>
+                    {mediaIsVideo ? (
+                      <video src={mediaUrl} className="cp-image-preview" controls />
+                    ) : mediaFileName.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i) ? (
+                      <div className="cp-doc-preview">
+                        <span>📄</span>
+                        <span>{mediaFileName}</span>
+                      </div>
+                    ) : (
+                      <img src={mediaUrl} alt="Preview" className="cp-image-preview" />
+                    )}
+                    <button className="cp-image-remove" onClick={e => { e.preventDefault(); setMediaUrl(null); setMediaFileName(''); setMediaIsVideo(false); }}>✕</button>
                   </div>
                 ) : (
                   <div className="cp-upload-placeholder">
-                    <span className="cp-upload-icon">📷</span>
-                    <p>Tap to upload an image</p>
-                    <p className="cp-upload-hint">JPG, PNG, GIF — max 5MB</p>
+                    <span className="cp-upload-icon">📎</span>
+                    <p>Tap to upload</p>
+                    <p className="cp-upload-hint">Images, videos (up to 200MB), PDFs, documents</p>
                   </div>
                 )}
               </label>
@@ -240,13 +282,17 @@ const CreatePostPage = () => {
               <div>
                 <input
                   className="cp-input"
-                  placeholder="https://example.com/image.jpg"
-                  value={imageUrl}
-                  onChange={e => setImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg or video URL"
+                  value={externalUrl}
+                  onChange={e => setExternalUrl(e.target.value)}
                 />
-                {imageUrl && (
+                {externalUrl && (
                   <div className="cp-image-preview-wrap" style={{ marginTop: 10 }}>
-                    <img src={imageUrl} alt="Preview" className="cp-image-preview" onError={e => (e.currentTarget.style.display = 'none')} />
+                    {storageService.isVideoUrl(externalUrl) ? (
+                      <video src={externalUrl} className="cp-image-preview" controls />
+                    ) : (
+                      <img src={externalUrl} alt="Preview" className="cp-image-preview" onError={e => (e.currentTarget.style.display = 'none')} />
+                    )}
                   </div>
                 )}
               </div>
@@ -368,10 +414,14 @@ const CreatePostPage = () => {
             {/* Headline */}
             {headline && <p className="cp-preview-headline">{headline}</p>}
 
-            {/* Image */}
-            {effectiveImage && (
+            {/* Media */}
+            {effectiveMedia && (
               <div className="cp-preview-image-wrap">
-                <img src={effectiveImage} alt="Post" className="cp-preview-image" />
+                {effectiveIsVideo ? (
+                  <video src={effectiveMedia} className="cp-preview-image" controls />
+                ) : (
+                  <img src={effectiveMedia} alt="Post" className="cp-preview-image" />
+                )}
               </div>
             )}
 

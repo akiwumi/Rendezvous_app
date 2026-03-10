@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { userService, postService } from '../services/localDataService';
+import { userService, postService, storageService } from '../services/localDataService';
 import { User } from '../types';
 import './ProfilePage.css';
 
@@ -43,18 +43,18 @@ const ProfilePage = () => {
         const users = await userService.getAllUsers();
         setAllUsers(users);
 
-        const foundAdmin = users.find(u => u.isAdmin && u.email === 'akiwumi@gmail.com');
+        const foundAdmin = users.find(u => u.isAdmin);
         if (foundAdmin) setAdminUser(foundAdmin);
 
         if (userId) {
-          const isAdminId = userId === 'admin-1' || userId === foundAdmin?.id;
+          const isAdminId = userId === foundAdmin?.id;
           if (isAdminId && foundAdmin) {
             setProfileUser(foundAdmin);
           } else {
             try {
               const user = await userService.getUser(userId);
               if (user) {
-                if (user.isAdmin && user.email === 'akiwumi@gmail.com') {
+                if (user.isAdmin) {
                   navigate('/admin-profile');
                   return;
                 }
@@ -106,26 +106,17 @@ const ProfilePage = () => {
     const file = e.target.files?.[0];
     if (!file || !currentUser) return;
     if (!file.type.startsWith('image/')) { alert('Please select an image file'); return; }
-    if (file.size > 5 * 1024 * 1024) { alert('Image size must be less than 5MB'); return; }
+    if (file.size > 10 * 1024 * 1024) { alert('Image must be under 10MB'); return; }
 
     setIsUploadingImage(true);
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const base64Image = reader.result as string;
-          await updateUser(currentUser.id, { profileImage: base64Image });
-          setProfileUser(prev => prev ? { ...prev, profileImage: base64Image } : prev);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-        } catch {
-          alert('Failed to update profile image. Please try again.');
-        } finally {
-          setIsUploadingImage(false);
-        }
-      };
-      reader.onerror = () => { setIsUploadingImage(false); alert('Error reading image file.'); };
-      reader.readAsDataURL(file);
+      const url = await storageService.uploadAvatar(file, currentUser.id);
+      await updateUser(currentUser.id, { profileImage: url });
+      setProfileUser(prev => prev ? { ...prev, profileImage: url } : prev);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch {
+      alert('Failed to update profile image. Please try again.');
+    } finally {
       setIsUploadingImage(false);
     }
   };

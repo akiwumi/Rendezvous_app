@@ -92,6 +92,9 @@ export interface Message {
   content: string;
   timestamp: Date;
   isAdmin?: boolean;
+  attachmentUrl?: string;
+  attachmentName?: string;
+  attachmentType?: 'image' | 'video' | 'file';
 }
 
 export interface Chat {

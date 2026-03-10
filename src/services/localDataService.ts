@@ -829,6 +829,51 @@ export const adminMessageService = {
   },
 };
 
+// ─── Storage Service ──────────────────────────────────────────────────────────
+
+const BUCKETS = {
+  avatars: 'avatars',
+  postMedia: 'post-media',
+  chatAttachments: 'chat-attachments',
+} as const;
+
+const uploadFile = async (bucket: string, path: string, file: File): Promise<string> => {
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(path, file, { cacheControl: '3600', upsert: true });
+  if (error) throw error;
+  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
+  return urlData.publicUrl;
+};
+
+export const storageService = {
+  async uploadAvatar(file: File, userId: string): Promise<string> {
+    const ext = file.name.split('.').pop();
+    return uploadFile(BUCKETS.avatars, `${userId}/avatar.${ext}`, file);
+  },
+
+  async uploadPostMedia(file: File, userId: string): Promise<string> {
+    const ext = file.name.split('.').pop();
+    const name = `${userId}/${Date.now()}.${ext}`;
+    return uploadFile(BUCKETS.postMedia, name, file);
+  },
+
+  async uploadChatAttachment(file: File, userId: string): Promise<string> {
+    const name = `${userId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    return uploadFile(BUCKETS.chatAttachments, name, file);
+  },
+
+  getAttachmentType(file: File): 'image' | 'video' | 'file' {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    return 'file';
+  },
+
+  isVideoUrl(url: string): boolean {
+    return /\.(mp4|mov|webm|ogg|avi)(\?|$)/i.test(url);
+  },
+};
+
 // ─── Legacy compatibility exports ────────────────────────────────────────────
 export const getLocalData = () => ({ users: [], posts: [], events: [], announcements: [], notifications: [] });
 export const setLocalData = (_data: unknown) => {};
