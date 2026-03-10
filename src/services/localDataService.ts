@@ -125,7 +125,13 @@ const mapInvitationCode = (row: any) => ({
 
 export const authService = {
   async signUp(email: string, password: string, _userData: Partial<User>) {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/welcome`,
+      },
+    });
     if (error) throw error;
     return data;
   },

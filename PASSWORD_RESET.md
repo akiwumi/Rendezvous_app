@@ -28,8 +28,9 @@ Supabase will only send recovery links to URLs you have explicitly whitelisted.
 3. Click **URL Configuration**
 4. Under **Redirect URLs**, click **Add URL** and add:
    - Your Vercel URL: `https://your-app.vercel.app/reset-password`
-   - If you have a custom domain: `https://rendezvousclub.com/reset-password`
-   - For local development: `http://localhost:5173/reset-password`
+   - Your Vercel URL for new user welcome: `https://your-app.vercel.app/welcome`
+   - If you have a custom domain: `https://rendezvousclub.com/reset-password`, `https://rendezvousclub.com/welcome`
+   - For local development: `http://localhost:5173/reset-password`, `http://localhost:5173/welcome`
 
 > Add each one separately. Without this, Supabase will reject the redirect and the recovery link won't work.
 
