@@ -271,6 +271,8 @@ const ProfilePage = () => {
                 className="profile-camera-btn"
                 onClick={handleImageClick}
                 disabled={isUploadingImage}
+                title="Change photo"
+                aria-label="Change profile photo"
               >
                 {isUploadingImage ? '⏳' : '📷'}
               </button>
@@ -284,6 +286,15 @@ const ProfilePage = () => {
             </h1>
             {profile.address && (
               <p className="profile-address">📍 {profile.address}</p>
+            )}
+            {isOwnProfile && (
+              <button
+                className="profile-change-photo-btn"
+                onClick={handleImageClick}
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? 'Uploading…' : 'Change photo'}
+              </button>
             )}
           </div>
 

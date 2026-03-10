@@ -260,6 +260,30 @@
   padding: 0;
 }
 
+.profile-change-photo-btn {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.profile-change-photo-btn:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.profile-change-photo-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .profile-identity-info {
   flex: 1;
   min-width: 0;
