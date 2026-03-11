@@ -1123,6 +1123,26 @@
   gap: var(--spacing-md);
 }
 
+.generate-code-desc {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: -8px 0 var(--spacing-md) 0;
+}
+
+.send-invite-form {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.send-invite-form .form-input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.send-invite-form .generate-code-btn {
+  flex-shrink: 0;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -57,3 +57,13 @@ export async function useInvite(invite: { id: string }) {
     .eq('id', invite.id);
   if (error) throw error;
 }
+
+/** Get all invites (for admin). */
+export async function getAllInvites() {
+  const { data, error } = await supabase
+    .from('invites')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}

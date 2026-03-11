@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { userService, postService, invitationService } from '../services/localDataService';
+import { sendInvite, getAllInvites } from '../services/inviteService';
 import { User } from '../types';
 import PostInteractions from '../components/PostInteractions';
 import AppHeader from '../components/AppHeader';
@@ -15,6 +16,9 @@ const AdminProfilePage = () => {
   const [friends, setFriends] = useState<any[]>([]);
   const [adminPosts, setAdminPosts] = useState<any[]>([]);
   const [invitationCodes, setInvitationCodes] = useState<any[]>([]);
+  const [emailInvites, setEmailInvites] = useState<any[]>([]);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [newCodeOptions, setNewCodeOptions] = useState({
     code: '',
     maxUses: '',
@@ -93,18 +97,22 @@ const AdminProfilePage = () => {
     loadData();
   }, [events, posts, currentUser]);
 
-  // Load invitation codes when tab is active
+  // Load invitation codes and email invites when tab is active
   useEffect(() => {
     if (activeTab === 'invitations') {
-      const loadInvitationCodes = async () => {
+      const loadData = async () => {
         try {
-          const codes = await invitationService.getAllInvitationCodes();
+          const [codes, invites] = await Promise.all([
+            invitationService.getAllInvitationCodes(),
+            getAllInvites(),
+          ]);
           setInvitationCodes(codes);
+          setEmailInvites(invites);
         } catch (error) {
-          console.error('Error loading invitation codes:', error);
+          console.error('Error loading invitations:', error);
         }
       };
-      loadInvitationCodes();
+      loadData();
     }
   }, [activeTab]);
 
@@ -157,6 +165,31 @@ const AdminProfilePage = () => {
     }).catch(() => {
       alert('Failed to copy code');
     });
+  };
+
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim();
+    if (!email) {
+      alert('Please enter an email address');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    setIsSendingInvite(true);
+    try {
+      await sendInvite(email);
+      setInviteEmail('');
+      const invites = await getAllInvites();
+      setEmailInvites(invites);
+      alert('Invitation sent! They will receive an email with a link to register.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to send invite';
+      alert(msg);
+    } finally {
+      setIsSendingInvite(false);
+    }
   };
   
   const handleFriendClick = (friendId: string) => {
@@ -718,11 +751,34 @@ const AdminProfilePage = () => {
           {activeTab === 'invitations' && (
             <div className="invitations-section">
               <div className="invitations-header">
-                <h2 className="invitations-title">Invitation Codes</h2>
-                <span className="invitations-count">{invitationCodes.length} codes</span>
+                <h2 className="invitations-title">Invitations</h2>
+                <span className="invitations-count">{emailInvites.length} email invites · {invitationCodes.length} codes</span>
               </div>
 
-              {/* Generate New Code Form */}
+              {/* Send Email Invite */}
+              <div className="generate-code-card send-invite-card">
+                <h3 className="generate-code-title">Send Email Invite</h3>
+                <p className="generate-code-desc">Invite someone by email. They will receive a link to register.</p>
+                <div className="generate-code-form send-invite-form">
+                  <input
+                    type="email"
+                    className="form-input"
+                    placeholder="Email address"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendInvite()}
+                  />
+                  <button
+                    className="generate-code-btn"
+                    onClick={handleSendInvite}
+                    disabled={isSendingInvite}
+                  >
+                    {isSendingInvite ? 'Sending...' : 'Send Invite'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Generate New Invitation Code */}
               <div className="generate-code-card">
                 <h3 className="generate-code-title">Generate New Invitation Code</h3>
                 <div className="generate-code-form">
@@ -768,9 +824,38 @@ const AdminProfilePage = () => {
                 </div>
               </div>
 
+              {/* Recent Email Invites */}
+              {emailInvites.length > 0 && (
+                <div className="codes-list">
+                  <h3 className="codes-list-title">Recent Email Invites</h3>
+                  <div className="codes-grid">
+                    {emailInvites.slice(0, 10).map((inv) => (
+                      <div key={inv.id} className={`code-card ${inv.used ? 'inactive' : ''}`}>
+                        <div className="code-header">
+                          <div className="code-value">
+                            <strong>{inv.email}</strong>
+                          </div>
+                          <span className={`code-status-btn ${inv.used ? 'inactive' : 'active'}`}>
+                            {inv.used ? 'Used' : 'Pending'}
+                          </span>
+                        </div>
+                        <div className="code-details">
+                          <div className="code-detail">
+                            <span className="code-detail-label">Sent:</span>
+                            <span className="code-detail-value">
+                              {new Date(inv.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Existing Codes List */}
               <div className="codes-list">
-                <h3 className="codes-list-title">Existing Codes</h3>
+                <h3 className="codes-list-title">Invitation Codes</h3>
                 {invitationCodes.length === 0 ? (
                   <div className="empty-state">
                     <p>No invitation codes yet</p>

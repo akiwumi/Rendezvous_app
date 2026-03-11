@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { userService, postService, eventService, announcementService, invitationService } from '../services/localDataService';
+import { sendInvite } from '../services/inviteService';
 import { User, Post, Event, Announcement } from '../types';
 import AppHeader from '../components/AppHeader';
 import './AdminConsolePage.css';
@@ -15,6 +16,10 @@ const AdminConsolePage = () => {
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [allAnnouncements, setAllAnnouncements] = useState<Announcement[]>([]);
   const [invitationCodes, setInvitationCodes] = useState<any[]>([]);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [newCodeOptions, setNewCodeOptions] = useState({ code: '', maxUses: '', expiresInDays: '' });
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalPosts: 0,
@@ -125,6 +130,46 @@ const AdminConsolePage = () => {
     } catch (error) {
       console.error('Error promoting user:', error);
       alert('Failed to promote user. Ensure the RLS policy allows admins to update users (see STORAGE_USERS.md).');
+    }
+  };
+
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    setIsSendingInvite(true);
+    try {
+      await sendInvite(email);
+      setInviteEmail('');
+      alert('Invitation sent! They will receive an email with a link to register.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to send invite');
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
+  const handleGenerateCode = async () => {
+    setIsGeneratingCode(true);
+    try {
+      const expiresAt = newCodeOptions.expiresInDays
+        ? new Date(Date.now() + parseInt(newCodeOptions.expiresInDays) * 24 * 60 * 60 * 1000)
+        : null;
+      const maxUses = newCodeOptions.maxUses ? parseInt(newCodeOptions.maxUses) : 100;
+      const code = await invitationService.generateInvitationCode(
+        maxUses,
+        expiresAt,
+        newCodeOptions.code || undefined
+      );
+      setNewCodeOptions({ code: '', maxUses: '', expiresInDays: '' });
+      setInvitationCodes(await invitationService.getAllInvitationCodes());
+      alert(`Code generated: ${code}`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to generate code');
+    } finally {
+      setIsGeneratingCode(false);
     }
   };
 
@@ -470,7 +515,68 @@ const AdminConsolePage = () => {
           {/* Invitations Section */}
           {activeSection === 'invitations' && (
             <div className="admin-section">
-              <h2 className="section-title">Invitation Code Management</h2>
+              <h2 className="section-title">Invitations & Codes</h2>
+
+              {/* Send Email Invite */}
+              <div className="admin-invite-forms">
+                <div className="admin-invite-form-card">
+                  <h3 className="admin-invite-form-title">Send Email Invite</h3>
+                  <div className="admin-invite-form-row">
+                    <input
+                      type="email"
+                      className="admin-invite-input"
+                      placeholder="Email address"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendInvite()}
+                    />
+                    <button
+                      className="admin-invite-btn"
+                      onClick={handleSendInvite}
+                      disabled={isSendingInvite}
+                    >
+                      {isSendingInvite ? 'Sending...' : 'Send'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Generate Invitation Code */}
+                <div className="admin-invite-form-card">
+                  <h3 className="admin-invite-form-title">Generate Code</h3>
+                  <div className="admin-invite-form-fields">
+                    <input
+                      type="text"
+                      className="admin-invite-input"
+                      placeholder="Custom code (optional)"
+                      value={newCodeOptions.code}
+                      onChange={(e) => setNewCodeOptions({ ...newCodeOptions, code: e.target.value.toUpperCase() })}
+                    />
+                    <input
+                      type="number"
+                      className="admin-invite-input admin-invite-input-sm"
+                      placeholder="Max uses"
+                      value={newCodeOptions.maxUses}
+                      onChange={(e) => setNewCodeOptions({ ...newCodeOptions, maxUses: e.target.value })}
+                    />
+                    <input
+                      type="number"
+                      className="admin-invite-input admin-invite-input-sm"
+                      placeholder="Expires (days)"
+                      value={newCodeOptions.expiresInDays}
+                      onChange={(e) => setNewCodeOptions({ ...newCodeOptions, expiresInDays: e.target.value })}
+                    />
+                    <button
+                      className="admin-invite-btn"
+                      onClick={handleGenerateCode}
+                      disabled={isGeneratingCode}
+                    >
+                      {isGeneratingCode ? 'Generating...' : 'Generate'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="admin-invite-list-title">Existing Invitation Codes</h3>
               <div className="admin-list">
                 {invitationCodes.map(code => (
                   <div key={code.code} className="admin-item-card">
