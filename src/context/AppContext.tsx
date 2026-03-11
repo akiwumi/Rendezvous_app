@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User, Post, Event, Notification, Announcement } from '../types';
 // Local data service replaces Supabase
 import { authService, userService, postService, eventService, notificationService, invitationService, adminService, storageService } from '../services/localDataService';
+import { validateInvite, useInvite } from '../services/inviteService';
 
 interface AppContextType {
   currentUser: User | null;
@@ -100,19 +101,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const registerUser = async (userData: Partial<User>, invitationCode: string): Promise<boolean> => {
     try {
-      // Validate invitation code
-      const isValidCode = await invitationService.validateInvitationCode(invitationCode);
-      if (!isValidCode) {
+      // Validate: try invites table first (email invites), then invitation_codes (legacy)
+      const invite = await validateInvite(invitationCode);
+      const isLegacyCode = !invite && (await invitationService.validateInvitationCode(invitationCode));
+
+      if (!invite && !isLegacyCode) {
         return false;
       }
 
-      // Use the invitation code (increment usage count) - skip for fallback code
+      // Mark as used
       if (invitationCode !== 'RENDEZVOUS2025') {
         try {
-          await invitationService.useInvitationCode(invitationCode);
+          if (invite) {
+            await useInvite(invite);
+          } else {
+            await invitationService.useInvitationCode(invitationCode);
+          }
         } catch (error) {
-          console.error('Error incrementing invitation code usage:', error);
-          // Don't fail registration if usage increment fails
+          console.error('Error marking invite/code as used:', error);
         }
       }
 

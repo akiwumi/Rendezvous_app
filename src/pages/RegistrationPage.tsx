@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import AppHeader from '../components/AppHeader';
 import './RegistrationPage.css';
 
 const RegistrationPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { registerUser } = useApp();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -18,7 +19,7 @@ const RegistrationPage = () => {
     facebook: '',
     twitter: '',
     linkedin: '',
-    invitationCode: '',
+    invitationCode: searchParams.get('invite') || '',
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
