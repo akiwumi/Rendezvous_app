@@ -1,13 +1,16 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useRouter, useParams } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { userService, postService, storageService } from '../services/localDataService';
 import { User } from '../types';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
-  const navigate = useNavigate();
-  const { userId } = useParams<{ userId?: string }>();
+  const router = useRouter();
+  const params = useParams();
+  const userId = params?.userId as string | undefined;
   const { currentUser, events, updateUser } = useApp();
   const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'posts' | 'events'>('about');
   const [profileUser, setProfileUser] = useState<User | null>(null);
@@ -35,18 +38,18 @@ const ProfilePage = () => {
   const handleProfileClick = (authorId: string) => {
     const admin = adminUser || allUsers.find(u => u.isAdmin);
     if (admin && authorId === admin.id) {
-      navigate('/admin-profile');
+      router.push('/admin-profile');
     } else {
-      navigate(`/profile/${authorId}`);
+      router.push(`/profile/${authorId}`);
     }
   };
 
   const handleFriendClick = (friendId: string) => {
     const admin = adminUser || allUsers.find(u => u.isAdmin);
     if (admin && friendId === admin.id) {
-      navigate('/admin-profile');
+      router.push('/admin-profile');
     } else {
-      navigate(`/profile/${friendId}`);
+      router.push(`/profile/${friendId}`);
     }
   };
 
@@ -69,7 +72,7 @@ const ProfilePage = () => {
               const user = await userService.getUser(userId);
               if (user) {
                 if (user.isAdmin) {
-                  navigate('/admin-profile');
+                  router.push('/admin-profile');
                   return;
                 }
                 setProfileUser(user);
@@ -127,8 +130,8 @@ const ProfilePage = () => {
       alert('Please select an image file (JPEG, PNG, GIF, or WebP).');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Image must be under 10MB.');
+    if (file.size > 25 * 1024 * 1024) {
+      alert('Image must be under 25MB.');
       return;
     }
     setIsUploadingCover(true);
@@ -153,8 +156,8 @@ const ProfilePage = () => {
       alert('Please select an image file (JPEG, PNG, GIF, or WebP).');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Image must be under 10MB. Please choose a smaller file.');
+    if (file.size > 25 * 1024 * 1024) {
+      alert('Image must be under 25MB. Please choose a smaller file.');
       return;
     }
 
@@ -193,7 +196,7 @@ const ProfilePage = () => {
     return (
       <div className="profile-page profile-loading">
         <p style={{ color: 'var(--text-secondary)' }}>Profile not found.</p>
-        <button className="profile-back-btn" onClick={() => navigate('/feed')}>← Back to Feed</button>
+        <button className="profile-back-btn" onClick={() => router.push('/announcements')}>← Back to Feed</button>
       </div>
     );
   }
@@ -304,7 +307,7 @@ const ProfilePage = () => {
         )}
 
         {/* Back button */}
-        <button className="profile-back-btn-overlay" onClick={() => navigate(-1)}>
+        <button className="profile-back-btn-overlay" onClick={() => router.back()}>
           ‹
         </button>
 
@@ -324,7 +327,7 @@ const ProfilePage = () => {
             </div>
           </div>
           {isAdmin && currentUser?.isAdmin && (
-            <button className="profile-console-btn" onClick={() => navigate('/admin-console')}>
+            <button className="profile-console-btn" onClick={() => router.push('/admin-console')}>
               ⚙
             </button>
           )}
@@ -427,7 +430,7 @@ const ProfilePage = () => {
                 {isFriend ? '✓ Connected' : '+ Connect'}
               </button>
             )}
-            <button className="profile-feed-btn" onClick={() => navigate('/feed')}>
+            <button className="profile-feed-btn" onClick={() => router.push('/announcements')}>
               Feed
             </button>
           </div>

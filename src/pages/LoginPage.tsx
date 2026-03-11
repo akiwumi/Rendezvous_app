@@ -1,10 +1,12 @@
+'use client';
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import './LoginPage.css';
 
 const LoginPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { loginUser } = useApp();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -24,7 +26,7 @@ const LoginPage = () => {
       const email = formData.email.trim().toLowerCase();
       const success = await loginUser(email, formData.password);
       if (success) {
-        navigate('/announcements', { replace: true });
+        router.replace('/announcements');
       } else {
         setError('Invalid email or password. Please try again.');
       }
@@ -86,7 +88,7 @@ const LoginPage = () => {
           <button
             type="button"
             className="login-register-link"
-            onClick={() => navigate('/forgot-password')}
+            onClick={() => router.push('/forgot-password')}
           >
             Forgot password?
           </button>
@@ -97,7 +99,7 @@ const LoginPage = () => {
           <button
             type="button"
             className="login-register-link"
-            onClick={() => navigate('/register')}
+            onClick={() => router.push('/register')}
           >
             Register
           </button>

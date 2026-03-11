@@ -1,12 +1,14 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { AdminMessage } from '../types';
 import { adminMessageService, userService } from '../services/localDataService';
 import './AdminMessagesPage.css';
 
 const AdminMessagesPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser } = useApp();
   const [threads, setThreads] = useState<{ userId: string; user: any; lastMessage: AdminMessage; unread: number }[]>([]);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
@@ -17,8 +19,8 @@ const AdminMessagesPage = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (currentUser && !currentUser.isAdmin) navigate('/feed');
-  }, [currentUser, navigate]);
+    if (currentUser && !currentUser.isAdmin) router.replace('/announcements');
+  }, [currentUser, router]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -89,7 +91,7 @@ const AdminMessagesPage = () => {
     return (
       <div className="admin-msg-page">
         <div className="admin-msg-header">
-          <button className="admin-msg-back" onClick={() => navigate('/admin')}>‹</button>
+          <button className="admin-msg-back" onClick={() => router.push('/admin')}>‹</button>
           <h1 className="admin-msg-title">Messages</h1>
           <button className="admin-msg-compose" onClick={() => setShowUserPicker(true)}>+</button>
         </div>
@@ -162,7 +164,7 @@ const AdminMessagesPage = () => {
             <p className="admin-chat-email">{activeUser?.email ?? ''}</p>
           </div>
         </div>
-        <button className="admin-msg-profile-btn" onClick={() => navigate(`/profile/${activeUserId}`)}>👤</button>
+        <button className="admin-msg-profile-btn" onClick={() => router.push(`/profile/${activeUserId}`)}>👤</button>
       </div>
 
       <div className="admin-chat-messages">

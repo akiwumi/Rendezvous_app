@@ -1,4 +1,6 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+'use client';
+
+import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import './AppHeader.css';
 
@@ -17,16 +19,16 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 const AppHeader = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const { logoutUser, currentUser } = useApp();
 
-  const title = PAGE_TITLES[location.pathname] ??
-    (location.pathname.startsWith('/profile/') ? 'Profile' : 'Rendezvous');
+  const title = PAGE_TITLES[pathname ?? ''] ??
+    (pathname?.startsWith('/profile/') ? 'Profile' : 'Rendezvous');
 
   const handleLogout = async () => {
     await logoutUser();
-    navigate('/login', { replace: true });
+    router.replace('/login');
   };
 
   return (

@@ -1,17 +1,19 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import './SplashScreen.css';
 
 const SplashScreen = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser, loading } = useApp();
   const [animateOut, setAnimateOut] = useState(false);
 
   useEffect(() => {
     // If already logged in, skip straight to feed
     if (!loading && currentUser) {
-      navigate('/announcements', { replace: true });
+      router.replace('/announcements');
       return;
     }
 
@@ -22,7 +24,7 @@ const SplashScreen = () => {
       }, 3500);
 
       const navTimer = setTimeout(() => {
-        navigate('/login', { replace: true });
+        router.replace('/login');
       }, 4000);
 
       return () => {
@@ -30,7 +32,7 @@ const SplashScreen = () => {
         clearTimeout(navTimer);
       };
     }
-  }, [loading, currentUser, navigate]);
+  }, [loading, currentUser, router]);
 
   return (
     <div className={`splash-screen${animateOut ? ' fade-out' : ''}`}>

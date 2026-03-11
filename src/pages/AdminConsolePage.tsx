@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { userService, postService, eventService, announcementService, invitationService } from '../services/localDataService';
 import { sendInvite } from '../services/inviteService';
@@ -8,7 +10,7 @@ import AppHeader from '../components/AppHeader';
 import './AdminConsolePage.css';
 
 const AdminConsolePage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser, updateUser, deleteUser, deletePost, deleteEvent, deleteAnnouncement } = useApp();
   const [activeSection, setActiveSection] = useState<'overview' | 'users' | 'posts' | 'events' | 'announcements' | 'invitations'>('overview');
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -31,9 +33,9 @@ const AdminConsolePage = () => {
   // Check if user is admin
   useEffect(() => {
     if (!currentUser || !currentUser.isAdmin) {
-      navigate('/feed');
+      router.replace('/announcements');
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, router]);
 
   // Load all data
   useEffect(() => {
@@ -211,13 +213,13 @@ const AdminConsolePage = () => {
           <div className="admin-console-actions">
             <button 
               className="admin-console-btn secondary"
-              onClick={() => navigate('/feed')}
+              onClick={() => router.push('/announcements')}
             >
               📰 View Feed
             </button>
             <button 
               className="admin-console-btn secondary"
-              onClick={() => navigate('/admin-profile')}
+              onClick={() => router.push('/admin-profile')}
             >
               👤 My Profile
             </button>
@@ -303,7 +305,7 @@ const AdminConsolePage = () => {
                 <div className="quick-actions-grid">
                   <button
                     className="quick-action-btn"
-                    onClick={() => navigate('/admin/create-post')}
+                    onClick={() => router.push('/admin/create-post')}
                   >
                     ➕ Create Post
                   </button>
@@ -315,13 +317,13 @@ const AdminConsolePage = () => {
                   </button>
                   <button 
                     className="quick-action-btn"
-                    onClick={() => navigate('/feed')}
+                    onClick={() => router.push('/announcements')}
                   >
                     📰 View Newsfeed
                   </button>
                   <button 
                     className="quick-action-btn"
-                    onClick={() => navigate('/admin-profile')}
+                    onClick={() => router.push('/admin-profile')}
                   >
                     👤 View Profile
                   </button>
@@ -367,7 +369,7 @@ const AdminConsolePage = () => {
                           <div className="action-buttons">
                             <button
                               className="action-btn view"
-                              onClick={() => navigate(`/profile/${user.id}`)}
+                              onClick={() => router.push(`/profile/${user.id}`)}
                             >
                               View
                             </button>

@@ -1,5 +1,7 @@
+'use client';
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { postService, eventService, announcementService, storageService } from '../services/localDataService';
 import './CreatePostPage.css';
@@ -13,7 +15,7 @@ const EMOJIS = ['😊', '❤️', '👍', '🎉', '🔥', '✨', '💯', '🎯',
 const CURRENCY_SYMBOLS: Record<Currency, string> = { GBP: '£', EUR: '€', USD: '$' };
 
 const CreatePostPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser, setPosts, setEvents, setAnnouncements } = useApp();
 
   // Form state
@@ -153,7 +155,7 @@ const CreatePostPage = () => {
       const updatedPosts = await postService.getPosts();
       setPosts(updatedPosts);
 
-      navigate('/admin');
+      router.replace('/admin');
     } catch (err) {
       console.error('Error publishing post:', err);
       setError('Failed to publish. Please try again.');
@@ -175,7 +177,7 @@ const CreatePostPage = () => {
     <div className="cp-page">
       {/* Header */}
       <div className="cp-header">
-        <button className="cp-back" onClick={() => navigate('/admin')} aria-label="Back">
+        <button className="cp-back" onClick={() => router.push('/admin')} aria-label="Back">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>

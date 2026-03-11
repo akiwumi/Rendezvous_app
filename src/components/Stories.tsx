@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { userService } from '../services/localDataService';
 import { useState, useEffect } from 'react';
@@ -6,7 +8,7 @@ import { User } from '../types';
 import './Stories.css';
 
 const Stories = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser } = useApp();
   const [users, setUsers] = useState<User[]>([]);
 
@@ -32,13 +34,13 @@ const Stories = () => {
       // Check if user is admin
       const user = await userService.getUser(userId);
       if (user?.isAdmin) {
-        navigate('/admin-profile');
+        router.push('/admin-profile');
       } else {
-        navigate(`/profile/${userId}`);
+        router.push(`/profile/${userId}`);
       }
     } catch (error) {
       // Fallback to regular profile route
-      navigate(`/profile/${userId}`);
+      router.push(`/profile/${userId}`);
     }
   };
 

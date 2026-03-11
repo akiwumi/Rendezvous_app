@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { userService, postService, invitationService } from '../services/localDataService';
 import { sendInvite, getAllInvites } from '../services/inviteService';
@@ -10,7 +12,7 @@ import BottomNav from '../components/BottomNav';
 import './AdminProfilePage.css';
 
 const AdminProfilePage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { events, announcements, posts, currentUser } = useApp();
   const [activeTab, setActiveTab] = useState<'about' | 'friends' | 'events' | 'posts' | 'gallery' | 'invitations'>('about');
   const [friends, setFriends] = useState<any[]>([]);
@@ -193,7 +195,7 @@ const AdminProfilePage = () => {
   };
   
   const handleFriendClick = (friendId: string) => {
-    navigate(`/profile/${friendId}`);
+    router.push(`/profile/${friendId}`);
   };
   
   // Filter events created by admin
@@ -260,14 +262,14 @@ const AdminProfilePage = () => {
             <div className="admin-profile-actions">
               <button 
                 className="admin-action-btn console-btn"
-                onClick={() => navigate('/admin-console')}
+                onClick={() => router.push('/admin-console')}
                 title="Admin Console"
               >
                 ⚙️ Console
               </button>
               <button 
                 className="admin-action-btn feed-btn"
-                onClick={() => navigate('/feed')}
+                onClick={() => router.push('/feed')}
                 title="View Newsfeed"
               >
                 📰 Feed
@@ -333,26 +335,26 @@ const AdminProfilePage = () => {
           <div className="admin-profile-action-buttons">
             <button 
               className="admin-action-btn edit-profile-btn"
-              onClick={() => navigate('/profile')}
+              onClick={() => router.push('/profile')}
               title="Edit your profile"
             >
               ✏️ Edit Profile
             </button>
             <button 
               className="create-post-button"
-              onClick={() => navigate('/admin/create-post')}
+              onClick={() => router.push('/admin/create-post')}
             >
               ➕ Create Post
             </button>
             <button 
               className="admin-console-button"
-              onClick={() => navigate('/admin-console')}
+              onClick={() => router.push('/admin-console')}
             >
               ⚙️ Admin Console
             </button>
             <button 
               className="feed-button"
-              onClick={() => navigate('/feed')}
+              onClick={() => router.push('/feed')}
             >
               📰 View Feed
             </button>
@@ -565,7 +567,7 @@ const AdminProfilePage = () => {
                   <span className="posts-count">{stats.postsCount} {stats.postsCount === 1 ? 'post' : 'posts'}</span>
                   <button 
                     className="create-post-btn"
-                    onClick={() => navigate('/admin/create-post')}
+                    onClick={() => router.push('/admin/create-post')}
                   >
                     + Create Post
                   </button>

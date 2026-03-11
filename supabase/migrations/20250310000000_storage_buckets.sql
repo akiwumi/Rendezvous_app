@@ -3,7 +3,7 @@
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit)
 VALUES 
-  ('avatars', 'avatars', true, 10485760),
+  ('avatars', 'avatars', true, 26214400),
   ('post-media', 'post-media', true, 209715200),
   ('chat-attachments', 'chat-attachments', true, 52428800)
 ON CONFLICT (id) DO NOTHING;

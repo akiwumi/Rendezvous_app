@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { Post } from '../types';
 import './CreatePostModal.css';
@@ -29,6 +31,10 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, currentUser }: CreatePostM
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 25 * 1024 * 1024) {
+        alert('Image must be under 25MB. Please choose a smaller file.');
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result as string);

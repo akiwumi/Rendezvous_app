@@ -1,10 +1,12 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+'use client';
+
+import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import './BottomNav.css'
 
 const BottomNav = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const { unreadNotificationsCount, openSearch } = useApp();
 
   const navItems = [
@@ -16,13 +18,13 @@ const BottomNav = () => {
     { id: 'profile', path: '/profile', icon: '/user.png', label: 'Profile' },
   ]
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => pathname === path;
 
   const handleClick = (item: typeof navItems[0]) => {
     if (item.action) {
       item.action();
     } else if (item.path) {
-      navigate(item.path);
+      router.push(item.path);
     }
   };
 

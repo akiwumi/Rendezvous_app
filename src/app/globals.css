@@ -1,5 +1,5 @@
-@import './design-system.css';
-@import './styles/modern-components.css';
+@import '../design-system.css';
+@import '../styles/modern-components.css';
 
 * {
   margin: 0;
@@ -16,11 +16,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#root {
+#__next {
   width: 100%;
   min-height: 100vh;
   max-width: 414px;
   margin: 0 auto;
   background-color: var(--bg-primary);
 }
-

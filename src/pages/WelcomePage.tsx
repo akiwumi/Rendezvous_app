@@ -1,10 +1,12 @@
+'use client';
+
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import './WelcomePage.css';
 
 const WelcomePage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser, loading } = useApp();
 
   useEffect(() => {
@@ -15,7 +17,7 @@ const WelcomePage = () => {
   }, [currentUser]);
 
   const handleContinue = () => {
-    navigate('/profile', { replace: true });
+    router.replace('/profile');
   };
 
   // Show loading while auth state is being established (e.g. from email link hash)
@@ -33,7 +35,7 @@ const WelcomePage = () => {
 
   // Not authenticated – redirect to login (e.g. user navigated to /welcome directly)
   if (!currentUser) {
-    navigate('/login', { replace: true });
+    router.replace('/login');
     return null;
   }
 

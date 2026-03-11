@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import './PullToRefresh.css';
 

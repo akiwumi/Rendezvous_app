@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { userService, postService, eventService, announcementService, invitationService, advertisementService } from '../services/localDataService';
 import './AdminPage.css';
@@ -15,7 +17,7 @@ interface AdminStats {
 }
 
 const AdminPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser, posts, events } = useApp();
   const [stats, setStats] = useState<AdminStats>({
     totalMembers: 0,
@@ -32,9 +34,9 @@ const AdminPage = () => {
   // Guard: redirect non-admins
   useEffect(() => {
     if (currentUser && !currentUser.isAdmin) {
-      navigate('/feed');
+      router.replace('/announcements');
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, router]);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -92,12 +94,12 @@ const AdminPage = () => {
         <div className="admin-page-header-bg" />
         <div className="admin-page-header-content">
           <div className="admin-page-header-top">
-            <button className="admin-back-btn" onClick={() => navigate('/feed')}>‹</button>
+            <button className="admin-back-btn" onClick={() => router.replace('/announcements')}>‹</button>
             <div className="admin-header-brand">
               <span className="admin-header-badge">Admin</span>
               <h1 className="admin-header-title">Dashboard</h1>
             </div>
-            <button className="admin-header-avatar-btn" onClick={() => navigate('/admin-profile')}>
+            <button className="admin-header-avatar-btn" onClick={() => router.push('/admin-profile')}>
               {currentUser.profileImage ? (
                 <img src={currentUser.profileImage} alt={currentUser.fullName} className="admin-header-avatar" />
               ) : (
@@ -167,35 +169,35 @@ const AdminPage = () => {
         <section className="admin-section">
           <h2 className="admin-section-title">Quick Actions</h2>
           <div className="admin-actions-grid">
-            <button className="admin-action-tile create-post" onClick={() => navigate('/admin/create-post')}>
+            <button className="admin-action-tile create-post" onClick={() => router.push('/admin/create-post')}>
               <span className="admin-action-tile-icon">✍️</span>
               <span className="admin-action-tile-label">Create Post</span>
             </button>
-            <button className="admin-action-tile manage-members" onClick={() => navigate('/admin-console')}>
+            <button className="admin-action-tile manage-members" onClick={() => router.push('/admin-console')}>
               <span className="admin-action-tile-icon">👤</span>
               <span className="admin-action-tile-label">Manage Members</span>
             </button>
-            <button className="admin-action-tile view-events" onClick={() => navigate('/events')}>
+            <button className="admin-action-tile view-events" onClick={() => router.push('/events')}>
               <span className="admin-action-tile-icon">🗓</span>
               <span className="admin-action-tile-label">View Events</span>
             </button>
-            <button className="admin-action-tile invitations" onClick={() => navigate('/admin-profile')}>
+            <button className="admin-action-tile invitations" onClick={() => router.push('/admin-profile')}>
               <span className="admin-action-tile-icon">🎫</span>
               <span className="admin-action-tile-label">Invitations</span>
             </button>
-            <button className="admin-action-tile announcements" onClick={() => navigate('/announcements')}>
+            <button className="admin-action-tile announcements" onClick={() => router.push('/announcements')}>
               <span className="admin-action-tile-icon">📢</span>
               <span className="admin-action-tile-label">Announcements</span>
             </button>
-            <button className="admin-action-tile console" onClick={() => navigate('/admin-console')}>
+            <button className="admin-action-tile console" onClick={() => router.push('/admin-console')}>
               <span className="admin-action-tile-icon">⚙️</span>
               <span className="admin-action-tile-label">Console</span>
             </button>
-            <button className="admin-action-tile messages" onClick={() => navigate('/admin/messages')}>
+            <button className="admin-action-tile messages" onClick={() => router.push('/admin/messages')}>
               <span className="admin-action-tile-icon">💬</span>
               <span className="admin-action-tile-label">Messages</span>
             </button>
-            <button className="admin-action-tile ads-manager" onClick={() => navigate('/admin/ads')}>
+            <button className="admin-action-tile ads-manager" onClick={() => router.push('/admin/ads')}>
               <span className="admin-action-tile-icon">📣</span>
               <span className="admin-action-tile-label">Ad Manager</span>
             </button>
@@ -206,7 +208,7 @@ const AdminPage = () => {
         <section className="admin-section">
           <div className="admin-section-header">
             <h2 className="admin-section-title">Upcoming Events</h2>
-            <button className="admin-section-link" onClick={() => navigate('/events')}>See all</button>
+            <button className="admin-section-link" onClick={() => router.push('/events')}>See all</button>
           </div>
           {upcomingEvents.length === 0 ? (
             <div className="admin-empty-card">
@@ -240,7 +242,7 @@ const AdminPage = () => {
         <section className="admin-section">
           <div className="admin-section-header">
             <h2 className="admin-section-title">Recent Members</h2>
-            <button className="admin-section-link" onClick={() => navigate('/admin-console')}>See all</button>
+            <button className="admin-section-link" onClick={() => router.push('/admin-console')}>See all</button>
           </div>
           {recentMembers.length === 0 ? (
             <div className="admin-empty-card">
@@ -253,7 +255,7 @@ const AdminPage = () => {
                 <div
                   key={member.id}
                   className="admin-member-row"
-                  onClick={() => navigate(`/profile/${member.id}`)}
+                  onClick={() => router.push(`/profile/${member.id}`)}
                 >
                   {member.profileImage ? (
                     <img src={member.profileImage} alt={member.fullName} className="admin-member-avatar" />
@@ -277,7 +279,7 @@ const AdminPage = () => {
         <section className="admin-section">
           <div className="admin-section-header">
             <h2 className="admin-section-title">Recent Posts</h2>
-            <button className="admin-section-link" onClick={() => navigate('/feed')}>See all</button>
+            <button className="admin-section-link" onClick={() => router.replace('/announcements')}>See all</button>
           </div>
           {recentPosts.length === 0 ? (
             <div className="admin-empty-card">

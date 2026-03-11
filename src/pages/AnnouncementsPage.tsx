@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { Announcement, Advertisement, Post } from '../types';
 import { announcementService, advertisementService, postService, userService } from '../services/localDataService';
@@ -15,7 +17,7 @@ type FeedItem =
   | { type: 'ad'; ad: Advertisement };
 
 const AnnouncementsPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { announcements, setAnnouncements, posts, setPosts, currentUser, unreadNotificationsCount, logoutUser, updateUser } = useApp();
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [activeAds, setActiveAds] = useState<Advertisement[]>([]);
@@ -65,7 +67,7 @@ const AnnouncementsPage = () => {
 
   const handleLogout = async () => {
     await logoutUser();
-    navigate('/login', { replace: true });
+    router.replace('/login');
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -128,7 +130,7 @@ const AnnouncementsPage = () => {
         </button>
         <span className="feed-brand">Rendezvous</span>
         <div className="feed-topbar-actions">
-          <button className="feed-topbar-btn" onClick={() => navigate('/notifications')} aria-label="Notifications">
+          <button className="feed-topbar-btn" onClick={() => router.push('/notifications')} aria-label="Notifications">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -137,7 +139,7 @@ const AnnouncementsPage = () => {
               <span className="feed-notif-dot">{unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}</span>
             )}
           </button>
-          <button className="feed-topbar-avatar" onClick={() => navigate('/profile')} aria-label="Profile">
+          <button className="feed-topbar-avatar" onClick={() => router.push('/profile')} aria-label="Profile">
             {currentUser?.profileImage ? (
               <img src={currentUser.profileImage} alt={currentUser.fullName} />
             ) : (
@@ -177,7 +179,7 @@ const AnnouncementsPage = () => {
                 posts={posts}
                 setPosts={setPosts}
                 updateUser={updateUser}
-                navigate={navigate}
+                onNavigate={router.push}
                 formatTimeAgo={formatTimeAgo}
               />
             );
@@ -268,14 +270,14 @@ interface PostCardProps {
   posts: Post[];
   setPosts: (posts: Post[]) => void;
   updateUser: any;
-  navigate: (path: string) => void;
+  onNavigate: (path: string) => void;
   formatTimeAgo: (date: Date) => string;
 }
 
-const PostCard = ({ post, currentUser, posts, setPosts, updateUser, navigate, formatTimeAgo }: PostCardProps) => {
+const PostCard = ({ post, currentUser, posts, setPosts, updateUser, onNavigate, formatTimeAgo }: PostCardProps) => {
   const handleAuthorClick = () => {
-    if (post.authorId === 'admin-1') navigate('/admin-profile');
-    else navigate(`/profile/${post.authorId}`);
+    if (post.authorId === 'admin-1') onNavigate('/admin-profile');
+    else onNavigate(`/profile/${post.authorId}`);
   };
 
   const handleLike = async (postId: string) => {

@@ -1,12 +1,14 @@
+'use client';
+
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import AppHeader from '../components/AppHeader';
 import './RegistrationPage.css';
 
 const RegistrationPage = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { registerUser } = useApp();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -19,7 +21,7 @@ const RegistrationPage = () => {
     facebook: '',
     twitter: '',
     linkedin: '',
-    invitationCode: searchParams.get('invite') || '',
+    invitationCode: searchParams?.get('invite') || '',
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -36,6 +38,11 @@ const RegistrationPage = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 25 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, profileImage: 'Image must be under 25MB.' }));
+        return;
+      }
+      setErrors(prev => ({ ...prev, profileImage: '' }));
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -114,7 +121,7 @@ const RegistrationPage = () => {
     if (success) {
       // Redirect to profile page after successful registration
       // The user is automatically authenticated via local storage
-      navigate('/profile');
+      router.replace('/profile');
     } else {
       setErrors({ 
         invitationCode: 'Registration failed. Please check your invitation code and try again.' 

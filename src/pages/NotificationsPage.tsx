@@ -1,3 +1,5 @@
+'use client';
+
 import { useApp } from '../context/AppContext';
 import AppHeader from '../components/AppHeader';
 import PullToRefresh from '../components/PullToRefresh';

@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { userService } from '../services/localDataService';
 import { User } from '../types';
@@ -8,7 +10,7 @@ import './SearchPage.css';
 
 const SearchPage = () => {
   const { currentUser } = useApp();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [members, setMembers] = useState<User[]>([]);
 
@@ -46,9 +48,9 @@ const SearchPage = () => {
 
   const handleViewProfile = (member: User) => {
     if (member.isAdmin) {
-      navigate('/admin-profile');
+      router.push('/admin-profile');
     } else {
-      navigate(`/profile/${member.id}`);
+      router.push(`/profile/${member.id}`);
     }
   };
 

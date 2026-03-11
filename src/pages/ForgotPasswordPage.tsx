@@ -1,10 +1,12 @@
+'use client';
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import './LoginPage.css';
 
 const ForgotPasswordPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
@@ -69,7 +71,7 @@ const ForgotPasswordPage = () => {
           <button
             type="button"
             className="login-register-link"
-            onClick={() => navigate('/login')}
+            onClick={() => router.push('/login')}
           >
             Back to login
           </button>

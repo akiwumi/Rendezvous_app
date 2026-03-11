@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { postService } from '../services/localDataService';
 import PostInteractions from '../components/PostInteractions';
@@ -9,7 +11,7 @@ import Stories from '../components/Stories';
 import './FeedPage.css';
 
 const FeedPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser, posts, setPosts, addPost, updateUser } = useApp();
 
   useEffect(() => {
@@ -31,15 +33,19 @@ const FeedPage = () => {
 
   const handleProfileClick = (authorId: string) => {
     if (authorId === 'admin-1') {
-      navigate('/admin-profile');
+      router.push('/admin-profile');
     } else {
-      navigate(`/profile/${authorId}`);
+      router.push(`/profile/${authorId}`);
     }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 25 * 1024 * 1024) {
+        alert('Image must be under 25MB. Please choose a smaller file.');
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setNewPostImage(reader.result as string);
@@ -117,10 +123,10 @@ const FeedPage = () => {
           <div className="feed-header-modern">
             <div
               className="feed-header-profile"
-              onClick={() => navigate('/profile')}
+              onClick={() => router.push('/profile')}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && navigate('/profile')}
+              onKeyDown={(e) => e.key === 'Enter' && router.push('/profile')}
               style={{ cursor: 'pointer' }}
               aria-label="Go to profile"
             >
@@ -136,7 +142,7 @@ const FeedPage = () => {
                 <div className="feed-header-cta">Discover, Connect, And Create Together.</div>
               </div>
             </div>
-            <button className="feed-notification-btn" onClick={() => navigate('/notifications')}>
+            <button className="feed-notification-btn" onClick={() => router.push('/notifications')}>
               🔔
               {currentUser && <span className="notification-dot"></span>}
             </button>

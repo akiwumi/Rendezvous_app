@@ -1,9 +1,0 @@
-/* App-wide styles */
-#root {
-  max-width: 414px;
-  margin: 0 auto;
-  background-color: var(--bg-primary);
-  min-height: 100vh;
-  position: relative;
-}
-

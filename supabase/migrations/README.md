@@ -20,6 +20,6 @@ supabase db push
 
 ## Buckets created
 
-- **avatars** – profile pictures (10MB max, public)
+- **avatars** – profile pictures (25MB max, public)
 - **post-media** – post images/videos (200MB max, public)
 - **chat-attachments** – chat files (50MB max, public)

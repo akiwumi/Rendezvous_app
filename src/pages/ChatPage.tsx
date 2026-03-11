@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { userService, storageService } from '../services/localDataService';

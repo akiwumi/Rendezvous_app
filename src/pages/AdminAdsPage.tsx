@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { Advertisement } from '../types';
 import { advertisementService } from '../services/localDataService';
@@ -24,7 +26,7 @@ const EMPTY_FORM: Omit<Advertisement, 'id' | 'impressions' | 'clicks' | 'created
 };
 
 const AdminAdsPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentUser } = useApp();
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -33,8 +35,8 @@ const AdminAdsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (currentUser && !currentUser.isAdmin) navigate('/feed');
-  }, [currentUser, navigate]);
+    if (currentUser && !currentUser.isAdmin) router.replace('/announcements');
+  }, [currentUser, router]);
 
   useEffect(() => {
     const load = async () => {
@@ -112,7 +114,7 @@ const AdminAdsPage = () => {
     <div className="admin-ads-page">
       {/* Header */}
       <div className="admin-ads-header">
-        <button className="admin-ads-back" onClick={() => navigate('/admin')}>‹</button>
+        <button className="admin-ads-back" onClick={() => router.push('/admin')}>‹</button>
         <h1 className="admin-ads-title">Ad Manager</h1>
         <button className="admin-ads-create-btn" onClick={openCreate}>+ New Ad</button>
       </div>

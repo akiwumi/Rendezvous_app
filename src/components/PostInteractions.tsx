@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { Post } from '../types';
 import './PostInteractions.css';
